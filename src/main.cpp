@@ -16,6 +16,7 @@ using namespace std;
 int main()
 {
  	string name;
+	//Gets user login name
 	name = getlogin();
 	if(name=="")
 	{
@@ -25,7 +26,7 @@ int main()
 	//Retrieves hostname
 	char host[64];
 	gethostname(host, 64);	
-	if (gethostname(host, sizeof(host-1))==-1)
+	if (gethostname(host, sizeof(host)-1)==-1)
 	{
 		perror("gethostname()");
 	}	
@@ -46,6 +47,7 @@ int main()
 	string str;
 	while(1)
 	{
+	//	char input[1000];
 		cout << name << "$ ";
         cin >> str;
         if(str=="exit")
