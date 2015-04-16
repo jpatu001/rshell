@@ -15,42 +15,84 @@
 #include<string.h>
 #include<vector>
 #include<queue>
+#include<boost/tokenizer.hpp>
 using namespace std;
-
+using namespace boost;
 
 //Universal Variables
+//PARSE With Strings and Tokenizer
 
-void parse(char *cmd)
+void exitShell();
+
+void execute(char arg[], char** argv)
 {
-	char **arg = (char**) malloc(1000);
-	int iter = 0;
-	arg[iter] = strtok(cmd," ");	
-	iter++;	
-	cout << "Gets here\n";
-	//if(arg[0]=="exit")	return;
-	while((arg[iter]=strtok(NULL," "))!=NULL)
-	{
-		iter++;
-	}
-	cout << "Puts NULL\n";
-	arg[iter] = NULL;
-
+	if((execvp(arg, argv))==-1){
+		perror("execvp");
+		_exit(1);
+	}	
+	/*
 	int pid = fork();
 	if(pid==-1) perror("fork");
-	else if(pid==0)
-	{
-		if(execvp(arg[0],arg)==-1) perror("execvp");
+	else if(pid==0){
+		if(execvp(arg, argv)==-1) perror("execvp");
 	}
 	else{
 		int parent = 0;
 		if(wait(&parent)==-1) perror("wait");
 	}
+	*/
+}
 
-			
+void parse(const string&  cmd)
+{
+	typedef tokenizer< char_separator<char> > tokenizer;
+	char_separator<char> sep(" ");	//Sets char as space
+	tokenizer tokens(cmd, sep);		//Sets separator as space " "
+	char **arg=(char**)malloc(10000);
+	
+	//Exit if 'exit' was made"
+	tokenizer::iterator iter = tokens.begin(); 
+	if((*iter)=="exit"){
+		free(arg);
+		exit(EXIT_SUCCESS);
+		exitShell();
+	}
+
+	int i = 0;
+	for(iter = tokens.begin(); iter!=tokens.end(); iter++, i++)
+	{
+		//cout << "TOKEN: " << *iter << endl;
+		//strcpy(arg[i], (*iter).c_str()+'\0');
+		//arg[i] =(char*)  (*iter).c_str();	
+		arg[i] =(char*) strdup((*iter).c_str());
+		//cout << "ARG" << i << ": " << arg[i] << endl;
+	}
+	arg[i] = NULL;
+	//cout << arg[0] << " " << arg[1] << endl;
+	//execute(arg[0], arg);
+	
+	int pid = fork();
+	if(pid==-1){
+		perror("fork");
+		exitShell();
+	//	if(execvp(arg[0], arg)==-1) perror("execvp");
+	}
+	else if(pid==0)	//Child Process
+	{
+		execute(arg[0], arg);
+	}
+	else{
+		int parent = 0;
+		if(wait(&parent)==-1){
+			 perror("wait");
+			 exitShell();
+		}
+	}
+
 	free(arg);
 }
-void findOPS(string cmd);
 
+	
 int main()
 {
 
@@ -83,10 +125,17 @@ int main()
 	{
 		cout << name << "$ ";
         getline(cin, userIN);
-		if(userIN.find('#')!=string::npos) userIN = userIN.substr(0, userIN.find('#'));
-		if(userIN == "exit") return 0;
-		char* command = (char*)userIN.c_str();
-		parse(command);
+		//cout << userIN << endl;
+		if(userIN.find('#')!=string::npos)
+		{
+			userIN = userIN.substr(0,userIN.find('#'));
+
+		}
+		//cout << userIN << endl;
+		
+		//Do nothing if empty command
+		if(userIN.size()==0){}
+		else parse(userIN);
 
 	}
 
@@ -96,10 +145,41 @@ int main()
 	return 0;
 }
 
-
-void findOPS(string cmd)
+void exitShell()
 {
-
-
-
+	exit(0);
 }
+
+
+/*
+void parse(char *cmd)
+{
+	char **arg = (char**) malloc(1000);
+	int iter = 0;
+	arg[iter] = strtok(cmd," ");	
+	iter++;	
+	cout << "Gets here\n";
+	//if(arg[0]=="exit")	return;
+	while((arg[iter]=strtok(NULL," "))!=NULL)
+	{
+		iter++;
+	}
+	cout << "Puts NULL\n";
+	arg[iter] = NULL;
+
+	int pid = fork();
+	if(pid==-1) perror("fork");
+	else if(pid==0)
+	{
+		if(execvp(arg[0],arg)==-1) perror("execvp");
+	}
+	else{
+		int parent = 0;
+		if(wait(&parent)==-1) perror("wait");
+	}
+
+			
+	free(arg);
+}
+*/
+
