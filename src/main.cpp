@@ -27,16 +27,27 @@ void parse(char *cmd)
 	arg[iter] = strtok(cmd," ");	
 	iter++;	
 	cout << "Gets here\n";
-	
+	//if(arg[0]=="exit")	return;
 	while((arg[iter]=strtok(NULL," "))!=NULL)
 	{
 		iter++;
 	}
 	cout << "Puts NULL\n";
 	arg[iter] = NULL;
-	if(execvp(arg[0], arg)==-1) perror("execvp");
-			
 
+	int pid = fork();
+	if(pid==-1) perror("fork");
+	else if(pid==0)
+	{
+		if(execvp(arg[0],arg)==-1) perror("execvp");
+	}
+	else{
+		int parent = 0;
+		if(wait(&parent)==-1) perror("wait");
+	}
+
+			
+	free(arg);
 }
 void findOPS(string cmd);
 
@@ -70,26 +81,12 @@ int main()
 	string userIN;
 	while(1)
 	{
-	//	int h = fork();
-
-		//if(h==0){
-			cout << name << "$ ";
-        	getline(cin, userIN);
-	
-			//Checks for # and removes everything after
-			char* command = (char*)userIN.c_str();
-			if(userIN.find('#')!=string::npos) userIN = userIN.substr(0, userIN.find('#'));
-		
-			if(userIN=="exit")
-			{
-				return 0;
-			}
-			parse(command);
-		//}
-		//else if(h>0){
-		//	wait(0);
-		//}
-		//else perror("IDK");
+		cout << name << "$ ";
+        getline(cin, userIN);
+		if(userIN.find('#')!=string::npos) userIN = userIN.substr(0, userIN.find('#'));
+		if(userIN == "exit") return 0;
+		char* command = (char*)userIN.c_str();
+		parse(command);
 
 	}
 
