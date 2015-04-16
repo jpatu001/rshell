@@ -19,84 +19,14 @@
 using namespace std;
 using namespace boost;
 
-//Universal Variables
-//PARSE With Strings and Tokenizer
-
+void execute(char arg[], char** argv);
 void exitShell();
-
-void execute(char arg[], char** argv)
-{
-	if((execvp(arg, argv))==-1){
-		perror("execvp");
-		_exit(1);
-	}	
-	/*
-	int pid = fork();
-	if(pid==-1) perror("fork");
-	else if(pid==0){
-		if(execvp(arg, argv)==-1) perror("execvp");
-	}
-	else{
-		int parent = 0;
-		if(wait(&parent)==-1) perror("wait");
-	}
-	*/
-}
-
-void parse(const string&  cmd)
-{
-	typedef tokenizer< char_separator<char> > tokenizer;
-	char_separator<char> sep(" ");	//Sets char as space
-	tokenizer tokens(cmd, sep);		//Sets separator as space " "
-	char **arg=(char**)malloc(10000);
-	
-	//Exit if 'exit' was made"
-	tokenizer::iterator iter = tokens.begin(); 
-	if((*iter)=="exit"){
-		free(arg);
-		exit(EXIT_SUCCESS);
-		exitShell();
-	}
-
-	int i = 0;
-	for(iter = tokens.begin(); iter!=tokens.end(); iter++, i++)
-	{
-		//cout << "TOKEN: " << *iter << endl;
-		//strcpy(arg[i], (*iter).c_str()+'\0');
-		//arg[i] =(char*)  (*iter).c_str();	
-		arg[i] =(char*) strdup((*iter).c_str());
-		//cout << "ARG" << i << ": " << arg[i] << endl;
-	}
-	arg[i] = NULL;
-	//cout << arg[0] << " " << arg[1] << endl;
-	//execute(arg[0], arg);
-	
-	int pid = fork();
-	if(pid==-1){
-		perror("fork");
-		exitShell();
-	//	if(execvp(arg[0], arg)==-1) perror("execvp");
-	}
-	else if(pid==0)	//Child Process
-	{
-		execute(arg[0], arg);
-	}
-	else{
-		int parent = 0;
-		if(wait(&parent)==-1){
-			 perror("wait");
-			 exitShell();
-		}
-	}
-
-	free(arg);
-}
-
+void parse(const string&  cmd);
+void findOPS(queue<string>& ops, string& cmd);
 	
 int main()
 {
 
-	queue<string> ops;
  	string name;
 	//Gets user login name
 	name = getlogin();
@@ -125,17 +55,32 @@ int main()
 	{
 		cout << name << "$ ";
         getline(cin, userIN);
-		//cout << userIN << endl;
+		//Removes everything after '#' (comment)
 		if(userIN.find('#')!=string::npos)
 		{
 			userIN = userIN.substr(0,userIN.find('#'));
 
 		}
-		//cout << userIN << endl;
-		
+		/*
+		//REMOVE AFTER TESTING==============
+		if(userIN=="exit") exitShell();
+		queue<string> ops;
+		findOPS(ops,userIN);
+		cout << "Connectors: "; 
+		while(!ops.empty()){
+			cout << ops.front() << " ";
+			ops.pop();
+		}
+		cout << endl;
+		//REMOVE WHEN DONE^^^^^^^^^^^^^^^^^^^
+		*/
 		//Do nothing if empty command
 		if(userIN.size()==0){}
-		else parse(userIN);
+		else{
+			queue<string> ops;
+			findOPS(ops,userIN);
+			parse(userIN);
+		}	
 
 	}
 
@@ -143,6 +88,77 @@ int main()
 
 
 	return 0;
+}
+
+void parse(const string&  cmd)
+{
+	typedef tokenizer< char_separator<char> > tokenizer;
+	char_separator<char> sep(" ");	//Sets char as space
+	tokenizer tokens(cmd, sep);		//Sets separator as space " "
+	char **arg=(char**)malloc(100000000); //Allocate space for 100m Command Line
+	
+	//Exit if 'exit' was entered"
+	tokenizer::iterator iter = tokens.begin(); 
+	if((*iter)=="exit"){
+		free(arg);
+		exit(EXIT_SUCCESS);
+		exitShell();
+	}
+
+	int i = 0;
+	for(iter = tokens.begin(); iter!=tokens.end(); iter++, i++)
+	{
+		//cout << "TOKEN: " << *iter << endl;
+		arg[i] =(char*) strdup((*iter).c_str());
+		//cout << "ARG" << i << ": " << arg[i] << endl;
+	}
+	arg[i] = NULL;
+	//cout << arg[0] << " " << arg[1] << endl;
+	//execute(arg[0], arg);
+	
+	int pid = fork();
+	if(pid==-1){//Fork Error
+		perror("fork");
+		free(arg);
+		exitShell();
+	}
+	else if(pid==0)//Child Process
+	{
+		execute(arg[0], arg);
+	}
+	else{//Parent
+		int parent = 0;
+		if(wait(&parent)==-1){//Wait Error
+			perror("wait");
+			free(arg); //Free arg before exitting
+			exitShell();
+		}
+	}
+
+	free(arg);
+}
+
+void execute(char arg[], char** argv)
+{
+	if((execvp(arg, argv))==-1){
+		perror("execvp");
+		_exit(1);
+	}	
+}
+
+void findOPS(queue<string>& ops, string& cmd){
+	for(unsigned int i = 0; i < cmd.size()-1; i++)
+	{
+		if(cmd.at(i)=='&' && cmd.at(i+1)=='&')
+		{
+			ops.push("&&");
+		}
+		else if(cmd.at(i)=='|' && cmd.at(i+1)=='|')
+		{
+			ops.push("||");
+		}
+
+	}
 }
 
 void exitShell()

@@ -18,3 +18,11 @@ $ make
 
 $ bin/rshell
 ```
+
+
+#Bugs/ Limitations
+*Invalid Connectors are accepted(consecutive instances of && or ||)
+```
+ls -a &&&& touch test
+ls ||| ls -a -l
+```
