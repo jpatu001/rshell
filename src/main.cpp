@@ -26,6 +26,14 @@ void findOPS(queue<string>& ops, string& cmd);
 	
 bool cmdWorked = false; //Global variable to track if command succeeded
 
+
+bool validIN(string& in)
+{
+	if(in.size()==0) return false;
+	if(in.find_first_not_of(' ') == string::npos) return false;
+	else return true;
+}
+
 int main()
 {
 
@@ -64,8 +72,8 @@ int main()
 
 		}
 		//Do nothing if empty command
-		if(userIN.size()==0){}
-		if(userIN.find_first_not_of(' ') == string::npos){} //Gets rid of all whitespaces entry 
+		if(!validIN(userIN)){}
+		if(!validIN(userIN)){} //Gets rid of all whitespaces entry 
 		else{
 			queue<string> ops;
 			findOPS(ops,userIN);
@@ -88,13 +96,11 @@ void parse(const string&  cmd,queue<string>& ops)
 		bool firstRound = true;
 
 		do{
-			cout << "CURRENT OPERATION: " << ops.front() << endl;
+			//cout << "CURRENT OPERATION: " << ops.front() << endl;
 			if(firstRound){
 				tok = strtok(command, (ops.front()).c_str());
-				cout << "1strnd: " << tok << endl;
 				execute(tok);
 				if(ops.front()=="&&" && cmdWorked){
-					cout << "&&\n";
 					firstRound=false;
 					continue;
 				}	
@@ -103,44 +109,57 @@ void parse(const string&  cmd,queue<string>& ops)
 					continue;
 				}
 				else if(ops.front()=="||" && !cmdWorked){
-					cout << "&&\n";
 					firstRound = false;
 				}	
 				else return;
 			}
 			else if (ops.size()!=1 && !firstRound){
-				tok = strtok(NULL, (ops.front()).c_str());
-				cout << "Else: " << tok << endl;
-				execute(tok);
+				//tok = strtok(NULL, (ops.front()).c_str());
+				//execute(tok);
 				if(ops.front()=="&&" && cmdWorked){
-					cout << "2nd\n";
-					ops.pop();
+				//	cout << "2nd\n";
+					ops.pop();	
+					string tmp = ops.front();
+					tmp = tmp + "&";
+					tok = strtok(NULL, tmp.c_str());//(ops.front()).c_str())
+					//cout << tok << endl;
+					execute(tok);
 					continue;
 				}	
 				else if(ops.front()==";"){
-					ops.pop();	
+					ops.pop();
+					tok = strtok(NULL, (ops.front()).c_str());
+					execute(tok);
 					continue;
 				}
 				else if(ops.front()=="||" && !cmdWorked){
 					ops.pop();
-					cout << "2nd\n";
+				//	cout << "2nd\n";
 				}	
 				else return;
 			}
 			else
 			{
 				ops.pop();
-				tok = strtok(NULL, " ");
-				string s;
-				char* cpy = (char*)malloc(10000);
+				char** tmp = (char**) malloc(10000);
+				int j = 0;
 				while(tok!=NULL)	
 				{
-					cout << tok << endl;
-					tok = strtok(NULL, " ");
-					strcpy(cpy,tok);
+					tok = strtok(NULL, " &");
+					tmp[j] = tok;
+					j++;
 				}
-				free(cpy);
-				cout << "SHIT" << endl;
+				tmp[j] = NULL;
+
+				string cmnd;
+				for(int i = 0; tmp[i]!=NULL; i++)
+				{
+					cmnd+=tmp[i];
+					cmnd+=" ";
+				}
+				free(tmp);
+				//cout << "FINAL: " << cmnd << endl;
+				if(validIN(cmnd)) execute(cmnd);
 				break;
 			}
 		}while(tok!=NULL && ops.size()!=0);
