@@ -23,16 +23,9 @@ void execute(const string& cmd); //char arg[], char** argv)
 void exitShell();
 void parse(const string&  cmd, queue<string>& ops);
 void findOPS(queue<string>& ops, string& cmd);
+bool validIN(string& in);
 	
 bool cmdWorked = false; //Global variable to track if command succeeded
-
-
-bool validIN(string& in)
-{
-	if(in.size()==0) return false;
-	if(in.find_first_not_of(' ') == string::npos) return false;
-	else return true;
-}
 
 int main()
 {
@@ -94,11 +87,13 @@ void parse(const string&  cmd,queue<string>& ops)
 	char* tok;
 	if(ops.size()!=0){
 		bool firstRound = true;
-
 		do{
 			//cout << "CURRENT OPERATION: " << ops.front() << endl;
 			if(firstRound){
 				tok = strtok(command, (ops.front()).c_str());
+				
+				if(tok==NULL)	execute(ops.front());
+
 				execute(tok);
 				if(ops.front()=="&&" && cmdWorked){
 					firstRound=false;
@@ -114,15 +109,11 @@ void parse(const string&  cmd,queue<string>& ops)
 				else return;
 			}
 			else if (ops.size()!=1 && !firstRound){
-				//tok = strtok(NULL, (ops.front()).c_str());
-				//execute(tok);
 				if(ops.front()=="&&" && cmdWorked){
-				//	cout << "2nd\n";
 					ops.pop();	
 					string tmp = ops.front();
 					tmp = tmp + "&";
 					tok = strtok(NULL, tmp.c_str());//(ops.front()).c_str())
-					//cout << tok << endl;
 					execute(tok);
 					continue;
 				}	
@@ -134,7 +125,6 @@ void parse(const string&  cmd,queue<string>& ops)
 				}
 				else if(ops.front()=="||" && !cmdWorked){
 					ops.pop();
-				//	cout << "2nd\n";
 				}	
 				else return;
 			}
@@ -158,7 +148,6 @@ void parse(const string&  cmd,queue<string>& ops)
 					cmnd+=" ";
 				}
 				free(tmp);
-				//cout << "FINAL: " << cmnd << endl;
 				if(validIN(cmnd)) execute(cmnd);
 				break;
 			}
@@ -176,7 +165,6 @@ void execute(const string& cmd)
 	char_separator<char> sep(" ");	//Sets char as space
 	tokenizer tokens(cmd, sep);		//Sets separator as space " "
 	char **arg=(char**)malloc(100000000); //Allocate space for 100m Command Line
-	
 	//Exit if 'exit' was entered"
 	tokenizer::iterator iter = tokens.begin(); 
 	if((*iter)=="exit"){
@@ -233,10 +221,12 @@ void findOPS(queue<string>& ops, string& cmd){
 		if(cmd.at(i)=='&' && cmd.at(i+1)=='&')
 		{
 			ops.push("&&");
+			i++;
 		}
 		else if(cmd.at(i)=='|' && cmd.at(i+1)=='|')
 		{
 			ops.push("||");
+			i++;
 		}
 		else if(cmd.at(i)==';')
 		{
@@ -244,6 +234,13 @@ void findOPS(queue<string>& ops, string& cmd){
 		}
 
 	}
+}
+
+bool validIN(string& in)
+{
+	if(in.size()==0) return false;
+	if(in.find_first_not_of(' ') == string::npos) return false;
+	else return true;
 }
 
 void exitShell()
