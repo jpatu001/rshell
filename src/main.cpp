@@ -19,11 +19,13 @@
 using namespace std;
 using namespace boost;
 
-void execute(char arg[], char** argv);
+void execute(const string& cmd); //char arg[], char** argv)
 void exitShell();
-void parse(const string&  cmd);
+void parse(const string&  cmd, queue<string>& ops);
 void findOPS(queue<string>& ops, string& cmd);
 	
+bool cmdWorked = false; //Global variable to track if command succeeded
+
 int main()
 {
 
@@ -61,25 +63,13 @@ int main()
 			userIN = userIN.substr(0,userIN.find('#'));
 
 		}
-		/*
-		//REMOVE AFTER TESTING==============
-		if(userIN=="exit") exitShell();
-		queue<string> ops;
-		findOPS(ops,userIN);
-		cout << "Connectors: "; 
-		while(!ops.empty()){
-			cout << ops.front() << " ";
-			ops.pop();
-		}
-		cout << endl;
-		//REMOVE WHEN DONE^^^^^^^^^^^^^^^^^^^
-		*/
 		//Do nothing if empty command
 		if(userIN.size()==0){}
+		if(userIN.find_first_not_of(' ') == string::npos){} //Gets rid of all whitespaces entry 
 		else{
 			queue<string> ops;
 			findOPS(ops,userIN);
-			parse(userIN);
+			parse(userIN, ops);
 		}	
 
 	}
@@ -90,7 +80,78 @@ int main()
 	return 0;
 }
 
-void parse(const string&  cmd)
+void parse(const string&  cmd,queue<string>& ops)
+{
+	char* command =(char*)  cmd.c_str();
+	char* tok;
+	if(ops.size()!=0){
+		bool firstRound = true;
+
+		do{
+			cout << "CURRENT OPERATION: " << ops.front() << endl;
+			if(firstRound){
+				tok = strtok(command, (ops.front()).c_str());
+				cout << "1strnd: " << tok << endl;
+				execute(tok);
+				if(ops.front()=="&&" && cmdWorked){
+					cout << "&&\n";
+					firstRound=false;
+					continue;
+				}	
+				else if(ops.front()==";"){
+					firstRound = false;
+					continue;
+				}
+				else if(ops.front()=="||" && !cmdWorked){
+					cout << "&&\n";
+					firstRound = false;
+				}	
+				else return;
+			}
+			else if (ops.size()!=1 && !firstRound){
+				tok = strtok(NULL, (ops.front()).c_str());
+				cout << "Else: " << tok << endl;
+				execute(tok);
+				if(ops.front()=="&&" && cmdWorked){
+					cout << "2nd\n";
+					ops.pop();
+					continue;
+				}	
+				else if(ops.front()==";"){
+					ops.pop();	
+					continue;
+				}
+				else if(ops.front()=="||" && !cmdWorked){
+					ops.pop();
+					cout << "2nd\n";
+				}	
+				else return;
+			}
+			else
+			{
+				ops.pop();
+				tok = strtok(NULL, " ");
+				string s;
+				char* cpy = (char*)malloc(10000);
+				while(tok!=NULL)	
+				{
+					cout << tok << endl;
+					tok = strtok(NULL, " ");
+					strcpy(cpy,tok);
+				}
+				free(cpy);
+				cout << "SHIT" << endl;
+				break;
+			}
+		}while(tok!=NULL && ops.size()!=0);
+	}
+
+	else{
+		execute(cmd);
+	}
+}
+
+void execute(const string& cmd)
 {
 	typedef tokenizer< char_separator<char> > tokenizer;
 	char_separator<char> sep(" ");	//Sets char as space
@@ -108,42 +169,43 @@ void parse(const string&  cmd)
 	int i = 0;
 	for(iter = tokens.begin(); iter!=tokens.end(); iter++, i++)
 	{
-		//cout << "TOKEN: " << *iter << endl;
 		arg[i] =(char*) strdup((*iter).c_str());
-		//cout << "ARG" << i << ": " << arg[i] << endl;
 	}
 	arg[i] = NULL;
-	//cout << arg[0] << " " << arg[1] << endl;
-	//execute(arg[0], arg);
 	
 	int pid = fork();
 	if(pid==-1){//Fork Error
 		perror("fork");
+		cmdWorked = false;
 		free(arg);
 		exitShell();
 	}
 	else if(pid==0)//Child Process
 	{
-		execute(arg[0], arg);
+		//execute(arg[0], arg);
+		if((execvp(arg[0], arg))==-1){
+		perror("execvp");
+		cmdWorked = false;
+		_exit(2);
+		}	
 	}
 	else{//Parent
 		int parent = 0;
 		if(wait(&parent)==-1){//Wait Error
 			perror("wait");
+			cmdWorked = false;
 			free(arg); //Free arg before exitting
 			exitShell();
+		}
+		
+		if(WIFEXITED(parent)) {
+			cmdWorked = true;
 		}
 	}
 
 	free(arg);
-}
 
-void execute(char arg[], char** argv)
-{
-	if((execvp(arg, argv))==-1){
-		perror("execvp");
-		_exit(1);
-	}	
+
 }
 
 void findOPS(queue<string>& ops, string& cmd){
@@ -157,6 +219,10 @@ void findOPS(queue<string>& ops, string& cmd){
 		{
 			ops.push("||");
 		}
+		else if(cmd.at(i)==';')
+		{
+			ops.push(";");
+		}
 
 	}
 }
@@ -165,37 +231,3 @@ void exitShell()
 {
 	exit(0);
 }
-
-
-/*
-void parse(char *cmd)
-{
-	char **arg = (char**) malloc(1000);
-	int iter = 0;
-	arg[iter] = strtok(cmd," ");	
-	iter++;	
-	cout << "Gets here\n";
-	//if(arg[0]=="exit")	return;
-	while((arg[iter]=strtok(NULL," "))!=NULL)
-	{
-		iter++;
-	}
-	cout << "Puts NULL\n";
-	arg[iter] = NULL;
-
-	int pid = fork();
-	if(pid==-1) perror("fork");
-	else if(pid==0)
-	{
-		if(execvp(arg[0],arg)==-1) perror("execvp");
-	}
-	else{
-		int parent = 0;
-		if(wait(&parent)==-1) perror("wait");
-	}
-
-			
-	free(arg);
-}
-*/
-
