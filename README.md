@@ -21,8 +21,19 @@ $ bin/rshell
 
 
 #Bugs/ Limitations
-*Invalid Connectors are accepted(consecutive instances of && or ||)
+##Invalid Connectors terminates rshell
+*(5 or more consecutive instances of && or ||)
 ```
-ls -a &&&& touch test
-ls ||| ls -a -l
+ls -a &&&&& touch test
+ls |||||||| ls -a -l
+```
+*(Multiple instances of ';' without actual commands in between)
+```
+ls;;;;;;; pwd
+ls -l -a;;
+```
+*(Connectors with no arguments)
+```
+;;;;
+&&&&&&&
 ```
