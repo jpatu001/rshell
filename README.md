@@ -37,3 +37,14 @@ ls -l -a;;
 ;;;;
 &&&&&&&
 ```
+##Accepts multiple consecutive connectors
+```
+pwd ||| ls
+ls &&&& pwd
+```
+
+##Cannot handle commands insde () or ""
+```
+"ls"
+(pwd)
+```
