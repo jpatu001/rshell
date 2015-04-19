@@ -1,5 +1,5 @@
 # rshell
-Basic command shell called RSHELL. Outputs the current user on the terminal including the host name and '$' sign. It accepts commands and executes them. This is a work in progress so several bugs waiting to be fixed exists. Anything after comment will be removed from the command argument.
+Basic command shell called RSHELL. Outputs the current user on the terminal including the host name and '$' sign. It accepts commands and executes them. This is a work in progress so several bugs waiting to be fixed exists. Anything after comment will be removed from the command argument. Typing `exit` exits the shell.
 
 
 #Installation Guide
@@ -37,14 +37,19 @@ ls -l -a;;
 ;;;;
 &&&&&&&
 ```
+
+
 ##Accepts multiple consecutive connectors
 ```
 pwd ||| ls
 ls &&&& pwd
 ```
 
+
 ##Cannot handle commands insde () or ""
 ```
 "ls"
 (pwd)
 ```
+
+

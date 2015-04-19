@@ -87,6 +87,7 @@ void parse(const string&  cmd,queue<string>& ops)
 {
 	char* command =(char*)  cmd.c_str();
 	char* tok;
+	string prev;
 	if(ops.size()!=0){
 		bool firstRound = true;
 		do{
@@ -106,19 +107,24 @@ void parse(const string&  cmd,queue<string>& ops)
 					firstRound = false;
 					continue;
 				}	
+				
+				else if(ops.front()=="||" && cmdWorked){
+					firstRound = false;
+					continue;
+				}
 				else return;
 			}
 			//Following commands
-			else if (ops.size()!=1 && !firstRound){
+			else if (ops.size()>1 && !firstRound){
 				if(ops.front()=="&&" && cmdWorked){
 					ops.pop();	
 					string tmp = ops.front();
-					tmp = tmp + "&";
+					tmp = tmp + "&";	//Adds prev to delimiters
 					tok = strtok(NULL, tmp.c_str());
 					execute(tok);
 					continue;
 				}	
-				else if(ops.front()==";" && (cmdWorked||!cmdWorked)){
+				else if(ops.front()==";"){ // && (cmdWorked||!cmdWorked)
 					ops.pop();
 					tok = strtok(NULL, (ops.front()).c_str());
 					execute(tok);
@@ -126,19 +132,30 @@ void parse(const string&  cmd,queue<string>& ops)
 				}
 				else if(ops.front()=="||" && !cmdWorked){
 					ops.pop();
+					string tmp = ops.front();
+					tmp = tmp + "|";	//Adds prev to delimters
 					tok = strtok(NULL, (ops.front()).c_str());
+					execute(tok);
 					continue;
 				}	
+				else if(ops.front()=="||" && cmdWorked)
+				{
+					ops.pop();
+					strtok(NULL, (ops.front()).c_str());
+					continue;
+				}	
+				
 				else continue;
 			}
 			else
 			{
-				if(ops.front()=="&&" && !cmdWorked) return; // continue;// cout << "HERE's YOUR SHIT(&& and F)\n";
-				if(ops.front()=="||" && cmdWorked) return;// continue;//cout << "HERE's YOUR SHIT(||)\n";
+				if(ops.front()=="&&" && !cmdWorked) return; //If ops is && but previous failed
+				if(ops.front()=="||" && cmdWorked)	return; 
+				
 				ops.pop();
-				//cout << "FELL IN HERE" << endl;
 				char** tmp = (char**) malloc(10000);
 				int j = 0;
+				//TOKENIZE
 				while(tok!=NULL)	
 				{
 					tok = strtok(NULL, " |&");
@@ -154,13 +171,13 @@ void parse(const string&  cmd,queue<string>& ops)
 					cmnd+=" ";
 				}
 				free(tmp);
-				if(validIN(cmnd)) execute(cmnd);
+				if(validIN(cmnd)) execute(cmnd); //Checks if it is valid
 				continue;
 			}
 		}while(tok!=NULL && ops.size()!=0);
 	}
 
-	else{
+	else{//SINGLE COMMANDS WITHOUT CONNECTORS
 		execute(cmd);
 	}
 }
@@ -198,9 +215,8 @@ void execute(const string& cmd)
 	{
 		if(execvp(arg[0], arg)==-1){ //Execvp Failed
 		perror("execvp");
-		//cout << "FAILED\n";
 		free(arg);
-		exit(3);
+		exit(3); //Sets exit status to 3
 		//_exit(2);
 		}	
 
