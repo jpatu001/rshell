@@ -1,0 +1,455 @@
+Script started on Sun 19 Apr 2015 04:19:11 PM PDT
+~
+jpatu001@hammer $ l[Kcd DOc[K[Kocuments/CS100/rshell/
+~/Documents/CS100/rshell
+jpatu001@hammer $ make
+if [ ! -d bin ]; then mkdir bin; fi
+g++ -ansi -pedantic -Wall -Werror src/main.cpp -o bin/rshell
+~/Documents/CS100/rshell
+jpatu001@hammer $ bin/rshell 
+jpatu001@hammer$ #Comment Test
+jpatu001@hammer$ #####################################
+jpatu001@hammer$ ls #-a -l
+bin  exec.script  LICENSE  Makefile  README.md	src  tests
+jpatu001@hammer$ #ls -a -l
+jpatu001@hammer$ #nonexistent           ignore all this
+jpatu001@hammer$ echo HelloWorld! #!!!!!!!!!!!!!!!!!!
+HelloWorld
+jpatu001@hammer$ #Single Commands
+jpatu001@hammer$ ls
+bin  exec.script  LICENSE  Makefile  README.md	src  tests
+jpatu001@hammer$ pwd
+/home/csmajs/jpatu001/Documents/CS100/rshell
+jpatu001@hammer$ ls -a -l
+total 52
+drwx------ 6 jpatu001 csmajs  4096 Apr 19 16:13 .
+drwx------ 7 jpatu001 csmajs  4096 Apr 19 16:08 ..
+drwx------ 2 jpatu001 csmajs  4096 Apr 19 16:13 bin
+-rw------- 1 jpatu001 csmajs     0 Apr 19 16:13 exec.script
+drwx------ 8 jpatu001 csmajs  4096 Apr 18 23:54 .git
+-rw------- 1 jpatu001 csmajs 18047 Apr  9 17:11 LICENSE
+-rw------- 1 jpatu001 csmajs   214 Apr 19 16:12 Makefile
+-rw------- 1 jpatu001 csmajs  1728 Apr 19 16:10 README.md
+drwx------ 2 jpatu001 csmajs  4096 Apr 19 15:44 src
+drwx------ 2 jpatu001 csmajs  4096 Apr 19 16:07 tests
+jpatu001@hammer$ #  Single Commands with mltipl     ultiple Spaaces       spaces
+jpatu001@hammer$ ls                                                            -a
+.  ..  bin  exec.script  .git  LICENSE	Makefile  README.md  src  tests
+jpatu001@hammer$ #Commands with a lt ot of flags
+jpatu001@hammer$ ls -a -l -a -l -a -l -a -l -a -l -a -l -a -l -a -l -a -l -a -l -  a -l -a -l -a -l -a -l -a -l -l a- -  -a -la  a   -a -la    -a -la  -a -l l 0a    -a -l -l -l -a -a -l -l -a -l -a -l -a -l -a -la    a -a -l -a -l -a -l -a -l -a -l -a -l -  a -l -a -l             -l -a -l -a -l -a -l -a -l -a -l -a -la -    -a -l -a -l -a -l -l -l -a
+total 52
+drwx------ 6 jpatu001 csmajs  4096 Apr 19 16:13 .
+drwx------ 7 jpatu001 csmajs  4096 Apr 19 16:08 ..
+drwx------ 2 jpatu001 csmajs  4096 Apr 19 16:13 bin
+-rw------- 1 jpatu001 csmajs     0 Apr 19 16:13 exec.script
+drwx------ 8 jpatu001 csmajs  4096 Apr 18 23:54 .git
+-rw------- 1 jpatu001 csmajs 18047 Apr  9 17:11 LICENSE
+-rw------- 1 jpatu001 csmajs   214 Apr 19 16:12 Makefile
+-rw------- 1 jpatu001 csmajs  1728 Apr 19 16:10 README.md
+drwx------ 2 jpatu001 csmajs  4096 Apr 19 15:44 src
+drwx------ 2 jpatu001 csmajs  4096 Apr 19 16:07 tests
+jpatu001@hammer$ #s Single Inavlid     valid Commands
+jpatu001@hammer$ doesntexit
+execvp: No such file or directory
+jpatu001@hammer$ nosuck hcommand
+execvp: No such file or directory
+jpatu001@hammer$ lsa #typo       -a #typoe 
+execvp: No such file or directory
+jpatu001@hammer$ ls -al
+total 52
+drwx------ 6 jpatu001 csmajs  4096 Apr 19 16:13 .
+drwx------ 7 jpatu001 csmajs  4096 Apr 19 16:08 ..
+drwx------ 2 jpatu001 csmajs  4096 Apr 19 16:13 bin
+-rw------- 1 jpatu001 csmajs     0 Apr 19 16:13 exec.script
+drwx------ 8 jpatu001 csmajs  4096 Apr 18 23:54 .git
+-rw------- 1 jpatu001 csmajs 18047 Apr  9 17:11 LICENSE
+-rw------- 1 jpatu001 csmajs   214 Apr 19 16:12 Makefile
+-rw------- 1 jpatu001 csmajs  1728 Apr 19 16:10 README.md
+drwx------ 2 jpatu001 csmajs  4096 Apr 19 15:44 src
+drwx------ 2 jpatu001 csmajs  4096 Apr 19 16:07 tests
+jpatu001@hammer$ pwda
+execvp: No such file or directory
+jpatu001@hammer$ #co  Commands with wrong fals   lags/ parameter
+jpatu001@hammer$ ls -z
+ls: invalid option -- 'z'
+Try `ls --help' for more information.
+jpatu001@hammer$ ps -doesntexit
+ERROR: Unknown user-defined format specifier "esntexit".
+********* simple selection *********  ********* selection by list *********
+-A all processes                      -C by command name
+-N negate selection                   -G by real group ID (supports names)
+-a all w/ tty except session leaders  -U by real user ID (supports names)
+-d all except session leaders         -g by session OR by effective group name
+-e all processes                      -p by process ID
+                                      -q by process ID (unsorted & quick)
+T  all processes on this terminal     -s processes in the sessions given
+a  all w/ tty, including other users  -t by tty
+g  OBSOLETE -- DO NOT USE             -u by effective user ID (supports names)
+r  only running processes             U  processes for specified users
+x  processes w/o controlling ttys     t  by tty
+*********** output format **********  *********** long options ***********
+-o,o user-defined  -f full            --Group --User --pid --cols --ppid
+-j,j job control   s  signal          --group --user --sid --rows --info
+-O,O preloaded -o  v  virtual memory  --cumulative --format --deselect
+-l,l long          u  user-oriented   --sort --tty --forest --version
+-F   extra full    X  registers       --heading --no-heading --context
+                                      --quick-pid
+                    ********* misc options *********
+-V,V  show version      L  list format codes  f  ASCII art forest
+-m,m,-L,-T,H  threads   S  children in sum    -y change -l format
+-M,Z  security data     c  true command name  -c scheduling class
+-w,w  wide output       n  numeric WCHAN,UID  -H process hierarchy
+jpatu001@hammer$ #Empty commands, or all Whitespace
+jpatu001@hammer$ 
+jpatu001@hammer$ 
+jpatu001@hammer$ 
+jpatu001@hammer$ 
+jpatu001@hammer$ 
+jpatu001@hammer$                        
+jpatu001@hammer$               
+jpatu001@hammer$ 
+jpatu001@hammer$ #Commands with W Connectors
+jpatu001@hammer$ ls || pwd
+bin  exec.script  LICENSE  Makefile  README.md	src  tests
+jpatu001@hammer$ pwd && ls
+/home/csmajs/jpatu001/Documents/CS100/rshell
+bin  exec.script  LICENSE  Makefile  README.md	src  tests
+jpatu001@hammer$ ls ; ls
+bin  exec.script  LICENSE  Makefile  README.md	src  tests
+bin  exec.script  LICENSE  Makefile  README.md	src  tests
+jpatu001@hammer$ ls; pwd || ls
+bin  exec.script  LICENSE  Makefile  README.md	src  tests
+/home/csmajs/jpatu001/Documents/CS100/rshell
+jpatu001@hammer$ ls && pwd || ls -a; ls -l
+bin  exec.script  LICENSE  Makefile  README.md	src  tests
+/home/csmajs/jpatu001/Documents/CS100/rshell
+total 40
+drwx------ 2 jpatu001 csmajs  4096 Apr 19 16:13 bin
+-rw------- 1 jpatu001 csmajs     0 Apr 19 16:13 exec.script
+-rw------- 1 jpatu001 csmajs 18047 Apr  9 17:11 LICENSE
+-rw------- 1 jpatu001 csmajs   214 Apr 19 16:12 Makefile
+-rw------- 1 jpatu001 csmajs  1728 Apr 19 16:10 README.md
+drwx------ 2 jpatu001 csmajs  4096 Apr 19 15:44 src
+drwx------ 2 jpatu001 csmajs  4096 Apr 19 16:07 tests
+jpatu001@hammer$ #Commands with connectors but with empty command af                                                 E  Empty commands after connectors
+jpatu001@hammer$ ls;
+bin  exec.script  LICENSE  Makefile  README.md	src  tests
+jpatu001@hammer$ pwd&&
+/home/csmajs/jpatu001/Documents/CS100/rshell
+jpatu001@hammer$ ls -a  ||
+.  ..  bin  exec.script  .git  LICENSE	Makefile  README.md  src  tests
+jpatu001@hammer$ #Commands with epm   mpty    empty                   Empty commands before cpon   onnectrs(H R Err   Bug   Limitation, documented in README>r  )
+jpatu001@hammer$ &&ls
+bin  exec.script  LICENSE  Makefile  README.md	src  tests
+jpatu001@hammer$ ||ls
+bin  exec.script  LICENSE  Makefile  README.md	src  tests
+jpatu001@hammer$ ;ls
+bin  exec.script  LICENSE  Makefile  README.md	src  tests
+jpatu001@hammer$ #Even more connectors test
+jpatu001@hammer$ ls ;ls;ls ;              ls ;ls || pwd || pwd; ls -a && pwd; ls -l
+bin  exec.script  LICENSE  Makefile  README.md	src  tests
+bin  exec.script  LICENSE  Makefile  README.md	src  tests
+bin  exec.script  LICENSE  Makefile  README.md	src  tests
+bin  exec.script  LICENSE  Makefile  README.md	src  tests
+bin  exec.script  LICENSE  Makefile  README.md	src  tests
+.  ..  bin  exec.script  .git  LICENSE	Makefile  README.md  src  tests
+/home/csmajs/jpatu001/Documents/CS100/rshell
+total 40
+drwx------ 2 jpatu001 csmajs  4096 Apr 19 16:13 bin
+-rw------- 1 jpatu001 csmajs     0 Apr 19 16:13 exec.script
+-rw------- 1 jpatu001 csmajs 18047 Apr  9 17:11 LICENSE
+-rw------- 1 jpatu001 csmajs   214 Apr 19 16:12 Makefile
+-rw------- 1 jpatu001 csmajs  1728 Apr 19 16:10 README.md
+drwx------ 2 jpatu001 csmajs  4096 Apr 19 15:44 src
+drwx------ 2 jpatu001 csmajs  4096 Apr 19 16:07 tests
+jpatu001@hammer$ echo hellow wo    wr   wrold    ordl;     ld; echo           && w echo ro  wrodl    orld; echo !
+hello
+world
+!
+jpatu001@hammer$ ls \|  || ls || ls || ls || ls || ls || ls
+bin  exec.script  LICENSE  Makefile  README.md	src  tests
+jpatu001@hammer$ ls && ls && ls && ls && ls && ls && ls
+bin  exec.script  LICENSE  Makefile  README.md	src  tests
+bin  exec.script  LICENSE  Makefile  README.md	src  tests
+bin  exec.script  LICENSE  Makefile  README.md	src  tests
+bin  exec.script  LICENSE  Makefile  README.md	src  tests
+bin  exec.script  LICENSE  Makefile  README.md	src  tests
+bin  exec.script  LICENSE  Makefile  README.md	src  tests
+bin  exec.script  LICENSE  Makefile  README.md	src  tests
+jpatu001@hammer$ ls; ls; ls; ls ;ls ;ls ;ls
+bin  exec.script  LICENSE  Makefile  README.md	src  tests
+bin  exec.script  LICENSE  Makefile  README.md	src  tests
+bin  exec.script  LICENSE  Makefile  README.md	src  tests
+bin  exec.script  LICENSE  Makefile  README.md	src  tests
+bin  exec.script  LICENSE  Makefile  README.md	src  tests
+bin  exec.script  LICENSE  Makefile  README.md	src  tests
+bin  exec.script  LICENSE  Makefile  README.md	src  tests
+jpatu001@hammer$ ls;    && mk    touch THISIS      TESTFILEONLY        fileONLY            test_i file_only; ks  ls || owd   pwd;    && rm test)f  _fu ileonl   _only ** &&   && ls^[[D^[[D^[[D^[[D^[[D^[[D^[[D^[[D^[[D^[[D^[[D^[[D^[[D^[[D^[[D^[[D^[[D^[[D                                                                         s
+bin  exec.script  LICENSE  Makefile  README.md	src  tests
+bin  exec.script  LICENSE  Makefile  README.md	src  test_file_only  tests
+bin  exec.script  LICENSE  Makefile  README.md	src  tests
+jpatu001@hammer$ ls
+bin  exec.script  LICENSE  Makefile  README.md	src  tests
+jpatu001@hammer$ #succed       rm  mkdir random; ls; rm -rd f random; ls
+bin  exec.script  LICENSE  Makefile  random  README.md	src  tests
+bin  exec.script  LICENSE  Makefile  README.md	src  tests
+jpatu001@hammer$ #co  Commands inside "" and () (README for further documentations)
+jpatu001@hammer$ "ls"
+execvp: No such file or directory
+jpatu001@hammer$ (pwd)
+execvp: No such file or directory
+jpatu001@hammer$ @ #T true and false calls,   (README F for further documentations)
+jpatu001@hammer$ true && pwd
+/home/csmajs/jpatu001/Documents/CS100/rshell
+jpatu001@hammer$ false && ls
+bin  exec.script  LICENSE  Makefile  README.md	src  tests
+jpatu001@hammer$ #More Random TEsts    ets  sts
+jpatu001@hammer$ ls -a -l &&  # % && pwd
+total 52
+drwx------ 6 jpatu001 csmajs  4096 Apr 19 16:26 .
+drwx------ 7 jpatu001 csmajs  4096 Apr 19 16:08 ..
+drwx------ 2 jpatu001 csmajs  4096 Apr 19 16:13 bin
+-rw------- 1 jpatu001 csmajs     0 Apr 19 16:13 exec.script
+drwx------ 8 jpatu001 csmajs  4096 Apr 18 23:54 .git
+-rw------- 1 jpatu001 csmajs 18047 Apr  9 17:11 LICENSE
+-rw------- 1 jpatu001 csmajs   214 Apr 19 16:12 Makefile
+-rw------- 1 jpatu001 csmajs  1728 Apr 19 16:10 README.md
+drwx------ 2 jpatu001 csmajs  4096 Apr 19 15:44 src
+drwx------ 2 jpatu001 csmajs  4096 Apr 19 16:07 tests
+jpatu001@hammer$ ls && ls ||    ;pwd : ;o pwd; pwd; pwd;pwd;pwd;pwd;pwd;owd;    ;pwd;     ls;ls;ls;[wd   pwd;ls -a;pwd;ls -l ; ; ls                               && pwd && pwd && wd  pwd : | ; ls &&pwd **  && pwd : ;ls ;ls; lpwd    pwd ; ech   ;echo this is a test              test; echo for;echo multiple && echo                                       
+bin  exec.script  LICENSE  Makefile  README.md	src  tests
+bin  exec.script  LICENSE  Makefile  README.md	src  tests
+/home/csmajs/jpatu001/Documents/CS100/rshell
+/home/csmajs/jpatu001/Documents/CS100/rshell
+/home/csmajs/jpatu001/Documents/CS100/rshell
+/home/csmajs/jpatu001/Documents/CS100/rshell
+/home/csmajs/jpatu001/Documents/CS100/rshell
+/home/csmajs/jpatu001/Documents/CS100/rshell
+/home/csmajs/jpatu001/Documents/CS100/rshell
+/home/csmajs/jpatu001/Documents/CS100/rshell
+bin  exec.script  LICENSE  Makefile  README.md	src  tests
+bin  exec.script  LICENSE  Makefile  README.md	src  tests
+bin  exec.script  LICENSE  Makefile  README.md	src  tests
+/home/csmajs/jpatu001/Documents/CS100/rshell
+.  ..  bin  exec.script  .git  LICENSE	Makefile  README.md  src  tests
+/home/csmajs/jpatu001/Documents/CS100/rshell
+total 40
+drwx------ 2 jpatu001 csmajs  4096 Apr 19 16:13 bin
+-rw------- 1 jpatu001 csmajs     0 Apr 19 16:13 exec.script
+-rw------- 1 jpatu001 csmajs 18047 Apr  9 17:11 LICENSE
+-rw------- 1 jpatu001 csmajs   214 Apr 19 16:12 Makefile
+-rw------- 1 jpatu001 csmajs  1728 Apr 19 16:10 README.md
+drwx------ 2 jpatu001 csmajs  4096 Apr 19 15:44 src
+drwx------ 2 jpatu001 csmajs  4096 Apr 19 16:07 tests
+bin  exec.script  LICENSE  Makefile  README.md	src  tests
+/home/csmajs/jpatu001/Documents/CS100/rshell
+/home/csmajs/jpatu001/Documents/CS100/rshell
+/home/csmajs/jpatu001/Documents/CS100/rshell
+bin  exec.script  LICENSE  Makefile  README.md	src  tests
+/home/csmajs/jpatu001/Documents/CS100/rshell
+/home/csmajs/jpatu001/Documents/CS100/rshell
+bin  exec.script  LICENSE  Makefile  README.md	src  tests
+bin  exec.script  LICENSE  Makefile  README.md	src  tests
+/home/csmajs/jpatu001/Documents/CS100/rshell
+execvp: No such file or directory
+jpatu001@hammer$ #Redoing test above, commands got cut in my terminal view
+jpatu001@hammer$ ls ;ls;ls;ls;ls;pwd&&pwd&&pwd&&ls&&ls&&pwd;pwd;pwd;ks  ls-a   -a; ls-    -l; pwd ;  ; pwd; pwd; ls ;ls -a -l; pwd ;pwd ;pwd ;pwd ;pwd; pwd;ls ;ls ;ls ;ls ;ls ;ls ;ls ;l  s ;[w  pwd ;lwd(    pwd ## M #Multiple commands
+bin  exec.script  LICENSE  Makefile  README.md	src  tests
+bin  exec.script  LICENSE  Makefile  README.md	src  tests
+bin  exec.script  LICENSE  Makefile  README.md	src  tests
+bin  exec.script  LICENSE  Makefile  README.md	src  tests
+bin  exec.script  LICENSE  Makefile  README.md	src  tests
+/home/csmajs/jpatu001/Documents/CS100/rshell
+/home/csmajs/jpatu001/Documents/CS100/rshell
+/home/csmajs/jpatu001/Documents/CS100/rshell
+bin  exec.script  LICENSE  Makefile  README.md	src  tests
+bin  exec.script  LICENSE  Makefile  README.md	src  tests
+/home/csmajs/jpatu001/Documents/CS100/rshell
+/home/csmajs/jpatu001/Documents/CS100/rshell
+/home/csmajs/jpatu001/Documents/CS100/rshell
+.  ..  bin  exec.script  .git  LICENSE	Makefile  README.md  src  tests
+total 40
+drwx------ 2 jpatu001 csmajs  4096 Apr 19 16:13 bin
+-rw------- 1 jpatu001 csmajs     0 Apr 19 16:13 exec.script
+-rw------- 1 jpatu001 csmajs 18047 Apr  9 17:11 LICENSE
+-rw------- 1 jpatu001 csmajs   214 Apr 19 16:12 Makefile
+-rw------- 1 jpatu001 csmajs  1728 Apr 19 16:10 README.md
+drwx------ 2 jpatu001 csmajs  4096 Apr 19 15:44 src
+drwx------ 2 jpatu001 csmajs  4096 Apr 19 16:07 tests
+/home/csmajs/jpatu001/Documents/CS100/rshell
+/home/csmajs/jpatu001/Documents/CS100/rshell
+/home/csmajs/jpatu001/Documents/CS100/rshell
+bin  exec.script  LICENSE  Makefile  README.md	src  tests
+total 52
+drwx------ 6 jpatu001 csmajs  4096 Apr 19 16:26 .
+drwx------ 7 jpatu001 csmajs  4096 Apr 19 16:08 ..
+drwx------ 2 jpatu001 csmajs  4096 Apr 19 16:13 bin
+-rw------- 1 jpatu001 csmajs     0 Apr 19 16:13 exec.script
+drwx------ 8 jpatu001 csmajs  4096 Apr 18 23:54 .git
+-rw------- 1 jpatu001 csmajs 18047 Apr  9 17:11 LICENSE
+-rw------- 1 jpatu001 csmajs   214 Apr 19 16:12 Makefile
+-rw------- 1 jpatu001 csmajs  1728 Apr 19 16:10 README.md
+drwx------ 2 jpatu001 csmajs  4096 Apr 19 15:44 src
+drwx------ 2 jpatu001 csmajs  4096 Apr 19 16:07 tests
+/home/csmajs/jpatu001/Documents/CS100/rshell
+/home/csmajs/jpatu001/Documents/CS100/rshell
+/home/csmajs/jpatu001/Documents/CS100/rshell
+/home/csmajs/jpatu001/Documents/CS100/rshell
+/home/csmajs/jpatu001/Documents/CS100/rshell
+/home/csmajs/jpatu001/Documents/CS100/rshell
+bin  exec.script  LICENSE  Makefile  README.md	src  tests
+bin  exec.script  LICENSE  Makefile  README.md	src  tests
+bin  exec.script  LICENSE  Makefile  README.md	src  tests
+bin  exec.script  LICENSE  Makefile  README.md	src  tests
+bin  exec.script  LICENSE  Makefile  README.md	src  tests
+bin  exec.script  LICENSE  Makefile  README.md	src  tests
+bin  exec.script  LICENSE  Makefile  README.md	src  tests
+bin  exec.script  LICENSE  Makefile  README.md	src  tests
+/home/csmajs/jpatu001/Documents/CS100/rshell
+/home/csmajs/jpatu001/Documents/CS100/rshell
+jpatu001@hammer$ ^[[A    #running         Try Running bin/rshell inside my Rshell
+jpatu001@hammer$ bin/r	 rh sge  he;;  ll
+jpatu001@hammer$ ls
+bin  exec.script  LICENSE  Makefile  README.md	src  tests
+jpatu001@hammer$ ls
+bin  exec.script  LICENSE  Makefile  README.md	src  tests
+jpatu001@hammer$ exit
+jpatu001@hammer$ #still in rshell
+jpatu001@hammer$ ps
+  PID TTY          TIME CMD
+25655 pts/3    00:00:00 bash
+25733 pts/3    00:00:00 rshell
+47711 pts/3    00:00:00 ps
+jpatu001@hammer$ #try again
+jpatu001@hammer$ bin/r	se hell
+jpatu001@hammer$ ps
+  PID TTY          TIME CMD
+25655 pts/3    00:00:00 bash
+25733 pts/3    00:00:00 rshell
+47750 pts/3    00:00:00 rshell
+47752 pts/3    00:00:00 ps
+jpatu001@hammer$ exit
+jpatu001@hammer$ rshell      ps
+  PID TTY          TIME CMD
+25655 pts/3    00:00:00 bash
+25733 pts/3    00:00:00 rshell
+47820 pts/3    00:00:00 ps
+jpatu001@hammer$ #exit test, a program ei xits as long as eit    xit is the first workk  d in the command, d r drops everyhting else.
+jpatu001@hammer$ #will run my own rshell inside rhs  sg hell again to test exit
+jpatu001@hammer$ bin/rshell
+jpatu001@hammer$ ps
+  PID TTY          TIME CMD
+25655 pts/3    00:00:00 bash
+25733 pts/3    00:00:00 rshell
+48053 pts/3    00:00:00 rshell
+48054 pts/3    00:00:00 ps
+jpatu001@hammer$ exit drops       should drop all this other c studd;   f;;  f; ls
+jpatu001@hammer$ ps
+  PID TTY          TIME CMD
+25655 pts/3    00:00:00 bash
+25733 pts/3    00:00:00 rshell
+48258 pts/3    00:00:00 ps
+jpatu001@hammer$ # p  proper      exited prper   operly as long as exit is on top      the first word in command
+jpatu001@hammer$ #fl ollowing tests fai   crashes rshell so   (In    README for further dos cumentaions    tios n). 
+jpatu001@hammer$ bin// rshell
+jpatu001@hammer$ ;;;;;;;       # ;;;;;;;;;;;;;;;;;;;;;;;;#multiple connectors with not    commands in between
+terminate called after throwing an instance of 'std::logic_error'
+  what():  basic_string::_S_construct NULL not valid
+jpatu001@hammer$ ps
+  PID TTY          TIME CMD
+25655 pts/3    00:00:00 bash
+25733 pts/3    00:00:00 rshell
+48637 pts/3    00:00:00 ps
+jpatu001@hammer$ # here the rshell that O opened crashed       terminated
+jpatu001@hammer$ bin/rshell
+jpatu001@hammer$ * &&&&&&&&&&&&&&&&&&&# same          #Same f goes for && }}  || and ;
+rshell: /usr/include/boost/token_iterator.hpp:56: const Type& boost::token_iterator<TokenizerFunc, Iterator, Type>::dereference() const [with TokenizerFunc = boost::char_separator<char, std::char_traits<char> >, Iterator = __gnu_cxx::__normal_iterator<const char*, std::basic_string<char, std::char_traits<char>, std::allocator<char> > >, Type = std::basic_string<char, std::char_traits<char>, std::allocator<char> >]: Assertion `valid_' failed.
+jpatu001@hammer$ ps
+  PID TTY          TIME CMD
+25655 pts/3    00:00:00 bash
+25733 pts/3    00:00:00 rshell
+48721 pts/3    00:00:00 ps
+jpatu001@hammer$ bin/rshell
+jpatu001@hammer$ ls &&&&& ls
+bin  exec.script  LICENSE  Makefile  README.md	src  tests
+bin  exec.script  LICENSE  Makefile  README.md	src  tests
+jpatu001@hammer$ #accepts i up to 5 connectors, but anything more and it crash     terminates too
+jpatu001@hammer$ ls  &&&&&&&&&&&&& ls
+bin  exec.script  LICENSE  Makefile  README.md	src  tests
+bin  exec.script  LICENSE  Makefile  README.md	src  tests
+terminate called after throwing an instance of 'std::logic_error'
+  what():  basic_string::_S_construct NULL not valid
+jpatu001@hammer$ ps
+  PID TTY          TIME CMD
+25655 pts/3    00:00:00 bash
+25733 pts/3    00:00:00 rshell
+48958 pts/3    00:00:00 ps
+jpatu001@hammer$ bin/rshell
+jpatu001@hammer$ #using exit as parameter to another                                   ps
+  PID TTY          TIME CMD
+25655 pts/3    00:00:00 bash
+25733 pts/3    00:00:00 rshell
+49118 pts/3    00:00:00 rshell
+49151 pts/3    00:00:00 ps
+jpatu001@hammer$ u #su  usig   ng exit as a parameter ro  to another comands    mands
+jpatu001@hammer$ ls exi   -exit
+ls: invalid option -- 'e'
+Try `ls --help' for more information.
+jpatu001@hammer$ ls ; exit
+bin  exec.script  LICENSE  Makefile  README.md	src  tests
+jpatu001@hammer$ ps
+  PID TTY          TIME CMD
+  728 pts/3    00:00:00 ps
+25655 pts/3    00:00:00 bash
+25733 pts/3    00:00:00 rshell
+jpatu001@hammer$ #exit when used [r  po roperly with onn   connectros;    ors; 
+jpatu001@hammer$ ls  ; ls  pwd && ls -a || exit
+bin  exec.script  LICENSE  Makefile  README.md	src  tests
+/home/csmajs/jpatu001/Documents/CS100/rshell
+.  ..  bin  exec.script  .git  LICENSE	Makefile  README.md  src  tests
+jpatu001@hammer$ ex  ps
+  PID TTY          TIME CMD
+ 1001 pts/3    00:00:00 ps
+25655 pts/3    00:00:00 bash
+25733 pts/3    00:00:00 rshell
+jpatu001@hammer$ #still in shell, since l exit is after ||
+jpatu001@hammer$ #For more deta              #more random tests
+jpatu001@hammer$ ls ;l pwd       ; pwd || ls -a l \ || ls -l; pwd && ls  owd     pwd || ls; pwd
+bin  exec.script  LICENSE  Makefile  README.md	src  tests
+/home/csmajs/jpatu001/Documents/CS100/rshell
+/home/csmajs/jpatu001/Documents/CS100/rshell
+/home/csmajs/jpatu001/Documents/CS100/rshell
+/home/csmajs/jpatu001/Documents/CS100/rshell
+jpatu001@hammer$ ls
+bin  exec.script  LICENSE  Makefile  README.md	src  tests
+jpatu001@hammer$ ls;; lwd;   s;ls && pwd || ls || ls || ls || ls || ls || ls && pwd ; pwd || ls && ls || ls -a  ; ls -l ; && ls -a
+bin  exec.script  LICENSE  Makefile  README.md	src  tests
+bin  exec.script  LICENSE  Makefile  README.md	src  tests
+bin  exec.script  LICENSE  Makefile  README.md	src  tests
+/home/csmajs/jpatu001/Documents/CS100/rshell
+/home/csmajs/jpatu001/Documents/CS100/rshell
+/home/csmajs/jpatu001/Documents/CS100/rshell
+bin  exec.script  LICENSE  Makefile  README.md	src  tests
+total 40
+drwx------ 2 jpatu001 csmajs  4096 Apr 19 16:13 bin
+-rw------- 1 jpatu001 csmajs     0 Apr 19 16:13 exec.script
+-rw------- 1 jpatu001 csmajs 18047 Apr  9 17:11 LICENSE
+-rw------- 1 jpatu001 csmajs   214 Apr 19 16:12 Makefile
+-rw------- 1 jpatu001 csmajs  1728 Apr 19 16:10 README.md
+drwx------ 2 jpatu001 csmajs  4096 Apr 19 15:44 src
+drwx------ 2 jpatu001 csmajs  4096 Apr 19 16:07 tests
+.  ..  bin  exec.script  .git  LICENSE	Makefile  README.md  src  tests
+jpatu001@hammer$ #For for documentaions                 more INn  nfoes  s on Bugs/ Limitations, please read the README file, T   ...
+jpatu001@hammer$ exit    exit
+~/Documents/CS100/rshell
+jpatu001@hammer $ ps
+  PID TTY          TIME CMD
+ 2108 pts/3    00:00:00 ps
+25655 pts/3    00:00:00 bash
+~/Documents/CS100/rshell
+jpatu001@hammer $ #YAYA[K[K[Kay! rhs[K[Kshell succesfully terminated
+~/Documents/CS100/rshell
+jpatu001@hammer $ exit
+exit
+
+Script done on Sun 19 Apr 2015 04:49:30 PM PDT
