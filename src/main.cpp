@@ -1,15 +1,15 @@
 #include<iostream>
 #include<string>
-#include<unistd.h> //fork(), execvp(), etc
-#include<sys/wait.h> //wait calls
-#include<stdio.h> //perror
-#include<errno.h> //
-#include<dirent.h> //Directory Syscalls
-#include<sys/stat.h> //
-#include<sys/types.h> //
-#include<signal.h> //signal(),kill(), etc
-#include<pwd.h> //pwd()
-#include<sys/ioctl.h> //ioctl()
+#include<unistd.h>	//fork(), execvp(), etc
+#include<sys/wait.h>	//wait calls
+#include<stdio.h>	//perror
+#include<errno.h>
+#include<dirent.h>	//Directory Syscalls
+#include<sys/stat.h> 
+#include<sys/types.h>
+#include<signal.h>	//signal(),kill(), etc
+#include<pwd.h>		//pwd()
+#include<sys/ioctl.h>	//ioctl()
 #include<stdlib.h>
 #include<cstring>
 #include<string.h>
@@ -25,7 +25,7 @@ void parse(const string&  cmd, queue<string>& ops);
 void findOPS(queue<string>& ops, string& cmd);
 bool validIN(string& in);
 	
-bool cmdWorked = false; //Global variable to track if command succeeded
+bool cmdWorked = false;	//Global variable to track if command succeeded
 bool failed = false;
 string prevConn = "";
 
@@ -67,7 +67,6 @@ int main()
 
 		}
 		//Do nothing if empty command
-		if(!validIN(userIN)){}
 		if(!validIN(userIN)){} //Gets rid of all whitespaces entry 
 		else{
 			queue<string> ops;
@@ -76,9 +75,6 @@ int main()
 		}	
 
 	}
-
-
-
 
 	return 0;
 }
@@ -124,8 +120,10 @@ void parse(const string&  cmd,queue<string>& ops)
 					execute(tok);
 					continue;
 				}	
-				else if(ops.front()==";"){ // && (cmdWorked||!cmdWorked)
+				else if(ops.front()==";"){	// && (cmdWorked||!cmdWorked)
 					ops.pop();
+					string tmp = ops.front();
+					tmp = tmp + ";";
 					tok = strtok(NULL, (ops.front()).c_str());
 					execute(tok);
 					continue;
@@ -149,7 +147,7 @@ void parse(const string&  cmd,queue<string>& ops)
 			}
 			else
 			{
-				if(ops.front()=="&&" && !cmdWorked) return; //If ops is && but previous failed
+				if(ops.front()=="&&" && !cmdWorked) return;	//If ops is && but previous failed
 				if(ops.front()=="||" && cmdWorked)	return; 
 				
 				ops.pop();
@@ -158,7 +156,7 @@ void parse(const string&  cmd,queue<string>& ops)
 				//TOKENIZE
 				while(tok!=NULL)	
 				{
-					tok = strtok(NULL, " |&");
+					tok = strtok(NULL, " ;|&");
 					tmp[j] = tok;
 					j++;
 				}
@@ -177,7 +175,7 @@ void parse(const string&  cmd,queue<string>& ops)
 		}while(tok!=NULL && ops.size()!=0);
 	}
 
-	else{//SINGLE COMMANDS WITHOUT CONNECTORS
+	else{	//SINGLE COMMANDS WITHOUT CONNECTORS
 		execute(cmd);
 	}
 }
@@ -185,9 +183,9 @@ void parse(const string&  cmd,queue<string>& ops)
 void execute(const string& cmd)
 {
 	typedef tokenizer< char_separator<char> > tokenizer;
-	char_separator<char> sep(" ");	//Sets char as space
+	char_separator<char> sep(" ;");	//Sets char as space
 	tokenizer tokens(cmd, sep);		//Sets separator as space " "
-	char **arg=(char**)malloc(100000000); //Allocate space for 100m Command Line
+	char **arg=(char**)malloc(100000000);	//Allocate space for 100m Command Line
 	
 	//Exit if 'exit' was entered"
 	tokenizer::iterator iter = tokens.begin(); 
