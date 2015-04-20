@@ -21,7 +21,7 @@ $ bin/rshell
 
 
 #Bugs/ Limitations
-##Invalid Connectors terminates rshell
+###Invalid Connectors terminates rshell
 * (5 or more consecutive instances of && or ||)
 ```
 ls -a &&&&& touch test
@@ -39,33 +39,33 @@ ls -l -a;;
 ```
 
 
-##Accepts multiple consecutive connectors
+###Accepts multiple consecutive connectors
 ```
 pwd ||| ls
 ls &&&& pwd
 ```
 
 
-##Cannot handle commands insde () or ""
+###Cannot handle commands insde () or ""
 ```
 "ls"
 (pwd)
 ```
 
-##`true`  evaluates as true, and `false` evaluates as true as well
+###`true`  evaluates as true, and `false` evaluates as true as well
 ```
 false && ls //This executes LS either way.
 ```
 
 
-##Throws an error message(perror) when a command failed, even when using connectors.
+###Throws an error message(perror) when a command failed, even when using connectors.
 ```
 awd || ls
 ```
 The code above excecutes `ls` since the first one failed(invalid) command, but it throws the perror.
 
 
-##Empty commands before connectors always evaluates as true
+###Empty commands before connectors always evaluates as true
 ```
 && ls
 || ls
