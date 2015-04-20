@@ -67,7 +67,7 @@ int main()
 
 		}
 		//Do nothing if empty command
-		if(!validIN(userIN)){} //Gets rid of all whitespaces entry 
+		if(!validIN(userIN)){}//Gets rid of all whitespaces entry 
 		else{
 			queue<string> ops;
 			findOPS(ops,userIN);
@@ -115,12 +115,12 @@ void parse(const string&  cmd,queue<string>& ops)
 				if(ops.front()=="&&" && cmdWorked){
 					ops.pop();	
 					string tmp = ops.front();
-					tmp = tmp + "&";	//Adds prev to delimiters
+					tmp = tmp + "&";//Adds prev to delimiters
 					tok = strtok(NULL, tmp.c_str());
 					execute(tok);
 					continue;
 				}	
-				else if(ops.front()==";"){	// && (cmdWorked||!cmdWorked)
+				else if(ops.front()==";"){// && (cmdWorked||!cmdWorked)
 					ops.pop();
 					string tmp = ops.front();
 					tmp = tmp + ";";
@@ -131,7 +131,7 @@ void parse(const string&  cmd,queue<string>& ops)
 				else if(ops.front()=="||" && !cmdWorked){
 					ops.pop();
 					string tmp = ops.front();
-					tmp = tmp + "|";	//Adds prev to delimters
+					tmp = tmp + "|";//Adds prev to delimters
 					tok = strtok(NULL, (ops.front()).c_str());
 					execute(tok);
 					continue;
@@ -147,7 +147,7 @@ void parse(const string&  cmd,queue<string>& ops)
 			}
 			else
 			{
-				if(ops.front()=="&&" && !cmdWorked) return;	//If ops is && but previous failed
+				if(ops.front()=="&&" && !cmdWorked) return;//If ops is && but previous failed
 				if(ops.front()=="||" && cmdWorked)	return; 
 				
 				ops.pop();
@@ -169,13 +169,13 @@ void parse(const string&  cmd,queue<string>& ops)
 					cmnd+=" ";
 				}
 				free(tmp);
-				if(validIN(cmnd)) execute(cmnd); //Checks if it is valid
+				if(validIN(cmnd)) execute(cmnd);//Checks if it is valid
 				continue;
 			}
 		}while(tok!=NULL && ops.size()!=0);
 	}
 
-	else{	//SINGLE COMMANDS WITHOUT CONNECTORS
+	else{//SINGLE COMMANDS WITHOUT CONNECTORS
 		execute(cmd);
 	}
 }
@@ -183,9 +183,9 @@ void parse(const string&  cmd,queue<string>& ops)
 void execute(const string& cmd)
 {
 	typedef tokenizer< char_separator<char> > tokenizer;
-	char_separator<char> sep(" ;");	//Sets char as space
-	tokenizer tokens(cmd, sep);		//Sets separator as space " "
-	char **arg=(char**)malloc(100000000);	//Allocate space for 100m Command Line
+	char_separator<char> sep(" ;");//Sets char as space
+	tokenizer tokens(cmd, sep);//Sets separator as space " "
+	char **arg=(char**)malloc(100000000);//Allocate space for 100m Command Line
 	
 	//Exit if 'exit' was entered"
 	tokenizer::iterator iter = tokens.begin(); 
@@ -211,11 +211,10 @@ void execute(const string& cmd)
 	}
 	else if(pid==0)//Child Process
 	{
-		if(execvp(arg[0], arg)==-1){ //Execvp Failed
+		if(execvp(arg[0], arg)==-1){//Execvp Failed
 		perror("execvp");
 		free(arg);
-		exit(3); //Sets exit status to 3
-		//_exit(2);
+		exit(3);//Sets exit status to 3
 		}	
 
 	}
@@ -224,15 +223,15 @@ void execute(const string& cmd)
 		if(wait(&parent)==-1){//Wait Error
 			perror("wait");
 			cmdWorked = false;
-			free(arg); //Free arg before exitting
+			free(arg);//Free arg before exitting
 			exitShell();
 		}
 		
 	
-		if(WIFEXITED(parent) && WEXITSTATUS(parent)==3) { //Sets bool to false if the command didnt execute
+		if(WIFEXITED(parent) && WEXITSTATUS(parent)==3) {//Sets bool to false if the command didnt execute
 			cmdWorked = false;
 		}
-		else cmdWorked = true;	//Else it executed correctly
+		else cmdWorked = true;//Else it executed correctly
 	}
 
 	free(arg);
