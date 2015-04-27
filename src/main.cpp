@@ -39,8 +39,8 @@ int main()
 
 	//Retrieves hostname
 	char host[64];
-	gethostname(host, 64);	
-	if (gethostname(host,sizeof(host)-1)==-1) perror("gethostname()");
+	//gethostname(host, 64);	
+	if (gethostname(host, 64)==-1) perror("gethostname()");
 
 	//Removes cs.ucr.edu
 	int i = 0;
