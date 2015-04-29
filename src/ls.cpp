@@ -21,9 +21,13 @@
 #include<iomanip>
 using namespace std;
 
+
 void printFiles(const char* directory, bool dashA, bool dashL, bool dashR)
 {
-	if(dashA && !dashL && !dashR)
+	vector<string>files;
+	vector<string>directories;
+
+	if(dashA && !dashL && !dashR)// -A
 	{
 		DIR *dirp;
 		if(NULL == (dirp = opendir(directory)))
@@ -36,30 +40,60 @@ void printFiles(const char* directory, bool dashA, bool dashL, bool dashR)
 		errno = 0;
 		while(NULL != (filespecs = readdir(dirp)))
 		{
-			cout << filespecs->d_name << " ";//files.push_back(filespecs->d_name);
+			files.push_back(filespecs->d_name);
 		}
 		if(errno != 0)
 		{
 			perror("There was an error with readdir(). ");
 			exit(1);
 		}
-		cout << endl;
 		if(-1 == closedir(dirp))
 		{
 			perror("There was an error with closedir(). ");
 			exit(1);
 		}
-		//Sort All files
-		//sort(files.begin(), files.end(), alphabet);
-
-		//Ouput All files
-		/*
+		sort(files.begin(), files.end());
 		for(unsigned int i = 0; i < files.size(); i++)
 		{
 			cout << files.at(i) << " ";
 		}
-		*/
+		cout << endl;
 	}
+	else if(!dashA && !dashL && !dashR)//No Flag
+	{
+		DIR *dirp;
+		if(NULL == (dirp = opendir(directory)))
+		{
+			perror("There was an error with opendir(). ");
+			exit(1);
+		}
+				
+		struct dirent *filespecs;
+		errno = 0;
+		while(NULL != (filespecs = readdir(dirp)))
+		{
+			if(filespecs->d_name[0]!='.') files.push_back(filespecs->d_name);
+			else continue;
+		}
+		if(errno != 0)
+		{
+			perror("There was an error with readdir(). ");
+			exit(1);
+		}
+		if(-1 == closedir(dirp))
+		{
+			perror("There was an error with closedir(). ");
+			exit(1);
+		}
+		sort(files.begin(), files.end());
+		for(unsigned int i = 0; i < files.size(); i++)
+		{
+			cout << files.at(i) << " ";
+		}
+		cout << endl;
+
+	}
+
 	else
 	{
 		cout << "Flag Not Supported Yet" << endl;
@@ -69,8 +103,8 @@ void printFiles(const char* directory, bool dashA, bool dashL, bool dashR)
 
 int main(int argc, char** argv)
 {
-	vector<string>files;
-	vector<string>directory;
+	//vector<string>files;
+	//vector<string>directory;
 	vector<string>userIN;
 
 	bool dashA = false;
@@ -103,13 +137,6 @@ int main(int argc, char** argv)
 			}
 			else{}
 		}
-		//Test, remove later
-		/*
-		for(unsigned int i = 0; i < userIN.size(); i++)
-		{
-			cout << userIN.at(i) << endl;
-		}
-		*/
 		if(userIN.size() > 0){	
 			printFiles(userIN.at(0).c_str(), dashA, dashL, dashR);
 		}
