@@ -1,5 +1,7 @@
 # rshell
-Basic command shell called RSHELL. Outputs the current user on the terminal including the host name and '$' sign. It accepts commands and executes them. It also accepts multiple commands with connectors such as `||`, `&&` and `;`. Any command after `;` will be executed regardless of previous commands. Commands after `&&` will be executed only if the previous command succeeded. Commands after `||`will execute only if the previous command failed. This is a work in progress so several bugs waiting to be fixed exists. Anything after comment will be removed from the command argument. Typing `exit` exits the shell but `exit` should be the first command(anything after exit is ignore). `cd` is currently unsupported.
+Basic command shell called RSHELL. Outputs the current user on the terminal including the host name and '$' sign. It accepts commands and executes them. It also accepts multiple commands with connectors such as `||`, `&&` and `;`. Any command after `;` will be executed regardless of previous commands. Commands after `&&` will be executed only if the previous command succeeded. Commands after `||`will execute only if the previous command failed. This is a work in progress so several bugs waiting to be fixed exists. Anything after comment will be removed from the command argument. Typing `exit` exits the shell but `exit` should be the first command(anything after exit is ignore). `cd` is currently unsupported. (Under Tag: hw0)
+
+Added ls. (Under Tag: hw1)
 
 
 #Installation Guide
@@ -11,12 +13,13 @@ $ cd rshell
 
 
 $ git checkout hw0
-
+//for ls, use `git checkout hw1`
 
 $ make
 
 
 $ bin/rshell
+//for ls, use `bin/ls`
 ```
 
 
