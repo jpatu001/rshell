@@ -19,13 +19,63 @@
 #include<errno.h>
 #include<algorithm>
 #include<iomanip>
+#include<pwd.h>
+#include<grp.h>
 using namespace std;
 
+
+void printPerm(vector<string>& vec)
+{
+	struct group  *group;
+	struct passwd *passwd;
+	struct stat s;
+
+	for(unsigned int i = 0; i < vec.size(); i++)
+	{
+		if((stat(vec.at(i).c_str(), & s))==-1)
+		{
+			perror("stat()");
+			exit(1);
+		}
+
+		if(S_ISREG(s.st_mode)) cout << "-";
+		else if(S_ISDIR(s.st_mode)) cout << "d";
+		else if(S_ISCHR(s.st_mode)) cout << "c";
+		else if(S_ISBLK(s.st_mode)) cout << "b";
+		else if(S_ISLNK(s.st_mode)) cout << "l";
+		else if(S_ISSOCK(s.st_mode)) cout << "s";
+		
+		cout << ((s.st_mode & S_IRUSR) ? "r" : "-");					
+		cout << ((s.st_mode & S_IWUSR) ? "r" : "-");
+		cout << ((s.st_mode & S_IXUSR) ? "r" : "-");
+		cout << ((s.st_mode & S_IRGRP) ? "r" : "-");					
+		cout << ((s.st_mode & S_IWGRP) ? "r" : "-");
+		cout << ((s.st_mode & S_IXGRP) ? "r" : "-");
+		cout << ((s.st_mode & S_IROTH) ? "r" : "-");					
+		cout << ((s.st_mode & S_IWOTH) ? "r" : "-");
+		cout << ((s.st_mode & S_IXOTH) ? "r" : "-");
+
+		cout << setw(2) << s.st_nlink << " ";
+
+		group = getgrgid(s.st_gid); 
+		if(group==NULL) perror("getgrid()");
+		passwd = getpwuid(s.st_uid);
+		if(passwd==NULL) perror("getpwuid()");
+
+		string time;
+		time = ctime(&s.st_mtime);
+		cout << setw(8) << passwd->pw_name;
+		cout << setw(8) << group->gr_name;
+		cout << setw(8) << s.st_size << " ";
+		cout << setw(20) << time << vec.at(i) << endl;
+	}
+
+}
 
 void printFiles(const char* directory, bool dashA, bool dashL, bool dashR)
 {
 	vector<string>files;
-	vector<string>directories;
+	vector<string>dir;
 
 	if(dashA && !dashL && !dashR)// -A
 	{
@@ -55,8 +105,46 @@ void printFiles(const char* directory, bool dashA, bool dashL, bool dashR)
 		sort(files.begin(), files.end());
 		for(unsigned int i = 0; i < files.size(); i++)
 		{
-			cout << files.at(i) << " ";
+			cout << files.at(i) << "  ";
 		}
+		cout << endl;
+	}
+	else if(dashL && !dashR)//-l -a or -l
+	{
+		DIR *dirp;
+		if(NULL == (dirp = opendir(directory)))
+		{
+			perror("There was an error with opendir(). ");
+			exit(1);
+		}
+				
+		struct dirent *filespecs;
+		errno = 0;
+		while(NULL != (filespecs = readdir(dirp)))
+		{
+			if(!dashA){
+				if(filespecs->d_name[0]!='.') files.push_back(filespecs->d_name);
+				else continue;
+			}
+			else files.push_back(filespecs->d_name);
+		}
+		if(errno != 0)
+		{
+			perror("There was an error with readdir(). ");
+			exit(1);
+		}
+		if(-1 == closedir(dirp))
+		{
+			perror("There was an error with closedir(). ");
+			exit(1);
+		}
+		sort(files.begin(), files.end());/*
+		for(unsigned int i = 0; i < files.size(); i++)
+		{
+			//cout << "THIS IS -L:";
+			//cout << files.at(i) << " ";//if(dashA) 
+		}*/
+		printPerm(files);
 		cout << endl;
 	}
 	else if(!dashA && !dashL && !dashR)//No Flag
