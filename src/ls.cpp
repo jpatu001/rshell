@@ -24,7 +24,7 @@
 using namespace std;
 
 
-void printPerm(const string & file);
+void printPerm(const string & file, const string& path);
 
 
 void printFiles(const char* directory, bool& dashA, bool& dashL, bool& dashR)
@@ -114,7 +114,12 @@ void printFiles(const char* directory, bool& dashA, bool& dashL, bool& dashR)
 			cout << setw(w) << files.at(i) << "  ";
 		} 
 		else if(dashL){
-			printPerm(files.at(i));
+			string directory2(directory);
+			string tmp(directory);
+			if(directory2.at(directory2.size()-1)!='/') tmp+='/';
+			tmp+= files.at(i);
+
+			printPerm(files.at(i), tmp);
 		}
 		if(files.size()==i -1) cout << endl << endl;
 	}
@@ -196,7 +201,7 @@ int main(int argc, char** argv)
 						currWidth = 0;
 						cout << endl;
 					}
-					if(dashL) printPerm(files.at(i));
+					if(dashL) printPerm(files.at(i), ".");
 					else{
 						currWidth += files.at(i).size() + 1;
 						cout << files.at(i) << " ";
@@ -227,12 +232,12 @@ int main(int argc, char** argv)
 	return 0;
 }
 
-void printPerm(const string & file)
+void printPerm(const string & file, const string& path)
 {
 	struct group  *group;
 	struct passwd *passwd;
 	struct stat s;
-	if( ( stat(file.c_str(), &s ) )==-1 )
+	if( ( stat(path.c_str(), &s ) )==-1 )
 	{
 		perror("stat()");
 		exit(1);
