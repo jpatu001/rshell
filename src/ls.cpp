@@ -24,76 +24,27 @@
 using namespace std;
 
 
-void printPerm(const string & file)
-{
-	struct group  *group;
-	struct passwd *passwd;
-	struct stat s;
-	cerr << file << endl;
-	if( ( stat(file.c_str(), &s ) )==-1 )
-	{
-		perror("stat()");
-		exit(1);
-	}	
+void printPerm(const string & file, const char* directory);
 
-	if(S_ISREG(s.st_mode)) cout << "-";
-	else if(S_ISDIR(s.st_mode)) cout << "d";
-	else if(S_ISCHR(s.st_mode)) cout << "c";
-	else if(S_ISBLK(s.st_mode)) cout << "b";
-	else if(S_ISLNK(s.st_mode)) cout << "l";
-	else if(S_ISSOCK(s.st_mode)) cout << "s";
 
-	cout << ((s.st_mode & S_IRUSR) ? "r" : "-");					
-	cout << ((s.st_mode & S_IWUSR) ? "w" : "-");
-	cout << ((s.st_mode & S_IXUSR) ? "x" : "-");
-	cout << ((s.st_mode & S_IRGRP) ? "r" : "-");					
-	cout << ((s.st_mode & S_IWGRP) ? "w" : "-");
-	cout << ((s.st_mode & S_IXGRP) ? "x" : "-");
-	cout << ((s.st_mode & S_IROTH) ? "r" : "-");					
-	cout << ((s.st_mode & S_IWOTH) ? "w" : "-");
-	cout << ((s.st_mode & S_IXOTH) ? "x" : "-");
-	//===Number of Hard Links==============
-	cout << setw(2) << s.st_nlink << " ";
-
-	group = getgrgid(s.st_gid); 
-	if(group==NULL) perror("getgrid()");
-	passwd = getpwuid(s.st_uid);
-	if(passwd==NULL) perror("getpwuid()");
-	//===TIME===============================
-	//string time;
-	//time = ctime(&s.st_mtime);
-	time_t t = s.st_mtime;
-	struct tm lt;
-	localtime_r(&t, &lt);
-	char time[80];
-	strftime(time,sizeof(time), "%c", &lt);
-	//===OUTPUT=============================
-	cout << setw(8) << passwd->pw_name;
-	cout << setw(8) << group->gr_name;
-	cout << setw(8) << s.st_size << " ";
-	cout << setw(20) << time << " ";
-	cout << file << endl;
-}
-
-void printFiles(const char* directory, bool dashA, bool dashL, bool dashR)
+void printFiles(const char* directory, bool& dashA, bool& dashL, bool& dashR)
 {
 	vector<string>files;
 	vector<string>dir;
 
-	if(!dashR)// -a or no flags
-	{
+	//if(!dashR)// -a or no flags
+	//{
 		DIR *dirp;
 		if(NULL == (dirp = opendir(directory)))
 		{
 			perror("There was an error with opendir(). ");
 			exit(1);
 		}
-				
 		struct dirent *filespecs;
 		errno = 0;
 		while(NULL != (filespecs = readdir(dirp)))
 		{
-			if(!dashA){
+			if(!dashA){//No Hidden files, ignore . files
 				if(filespecs->d_name[0]!='.') files.push_back(filespecs->d_name);
 				else continue;
 			}
@@ -104,24 +55,77 @@ void printFiles(const char* directory, bool dashA, bool dashL, bool dashR)
 			perror("There was an error with readdir(). ");
 			exit(1);
 		}
-		sort(files.begin(), files.end());
-		for(unsigned int i = 0; i < files.size(); i++)
-		{
-			if(!dashL) cout << files.at(i) << "  ";
-			else if(dashL) printPerm(files.at(i));//cout << "THIS IS -l:" << files.at(i) << endl; //printPerm(files.at(i));
-		}
 		if(-1 == closedir(dirp))
 		{
 			perror("There was an error with closedir(). ");
 			exit(1);
 		}
-		cout << endl;
-	}
-	else
-	{
-		cout << "Flag Not Supported Yet" << endl;
-	}
 
+//=== -R setup ============================================================
+		for(unsigned int i = 0; i < files.size(); i++)
+		{
+			struct stat s;
+			if( ( stat(files.at(i).c_str(), &s ) )==-1 )
+			{
+				cerr << endl << "THIS STAT SHIT OVER HERE:" << files.at(i) << endl;
+				perror("stat()");
+				exit(1);
+			}	
+			//if(S_ISREG(s.st_mode)) files.push_back(userIN.at(i));//
+		 	if(S_ISDIR(s.st_mode) && files.at(i)!=".." && files.at(i)!=".")
+			{
+				if(files.at(i).at(files.at(i).size()-1)!='/')
+				{	
+					files.at(i) = files.at(i) + '/'; 
+				}
+				char currDir[1024];
+				if((getcwd(currDir, sizeof(currDir))==NULL)) perror("getcwd");
+				string nextDir(currDir);
+				nextDir += '/' + files.at(i);
+				//cerr << endl << "DIRECTORY: " << currDir << nextDir<< endl;
+				dir.push_back(nextDir);
+
+			}
+		}
+
+//========================================================================
+		sort(files.begin(), files.end());
+		sort(dir.begin(), dir.end());
+		int maxW = 60;
+		int currW = 0;
+		unsigned int w = 0;
+		//GETS MAXIMUM SIZE OF STRINGS
+		for(unsigned int i = 0; i < files.size(); i++)
+		{
+			if((files.at(i).size()) > w) w = files.at(i).size();
+		}
+		
+		if(dashR) cout << directory << ":" << endl;
+		for(unsigned int i = 0; i < files.size(); i++)
+		{
+			if(!dashL){
+				if(currW>=maxW){
+					cout << endl;
+					currW = 0;
+				}
+				currW+= files.at(i).size()+1;
+				cout << setw(w) << files.at(i) << "  ";
+			} 
+			else if(dashL){
+				printPerm(files.at(i), directory);
+			}
+		}
+		
+		if(dashR)
+		{	
+			for(unsigned int i = 0; i < dir.size(); i++)
+			{
+				printFiles(dir.at(i).c_str(), dashA, dashL, dashR);
+				cout << endl;
+			}
+		}
+
+		cout << endl;
 }
 
 int main(int argc, char** argv)
@@ -169,16 +173,12 @@ int main(int argc, char** argv)
 					perror("stat()");
 					exit(1);
 				}	
-				if(S_ISREG(s.st_mode)) files.push_back(userIN.at(i));//printPerm(userIN.at(i).c_str());
-				//else if(S_ISREG(s.st_mode) && !dashL) cout << userIN.at(i) << " ";
+				if(S_ISREG(s.st_mode)) files.push_back(userIN.at(i));//
 				else if(S_ISDIR(s.st_mode))
 				{
-					//cerr << "HERE";
 					if(userIN.at(i).at(userIN.at(i).size()-1)!='/')
 					{	
-						//cerr << "GOT HERE";
 						userIN.at(i) = userIN.at(i) + '/'; 
-						//directory.push_back(userIN.at(i));
 					}
 					directory.push_back(userIN.at(i));
 				}
@@ -186,18 +186,21 @@ int main(int argc, char** argv)
 			//For Files
 			if(files.size()>0)
 			{	
-				int maxWidth = 72;;
+				int maxWidth = 60;
 				int currWidth = 0;
 				for(unsigned int i = 0; i < files.size(); i++)
 				{
 					//if(files.size()==0 || files.empty()) break;
-					if(currWidth==maxWidth)
+					if(currWidth>=maxWidth)
 					{
 						currWidth = 0;
 						cout << endl;
 					}
-					currWidth += files.at(i).size() + 1;
-					cout << files.at(i) << " ";
+					if(dashL) printPerm(files.at(i), ".");
+					else{
+						currWidth += files.at(i).size() + 1;
+						cout << files.at(i) << " ";
+					}
 				}
 				cout << endl;
 			}
@@ -206,7 +209,10 @@ int main(int argc, char** argv)
 				//For Directories;
 				for(unsigned int i = 0; i < directory.size(); i++)
 				{
-					cout << directory.at(i) << endl;
+					//cout << directory.at(i) << endl;
+					//string temp = "./";
+					//temp += directory.at(i);
+					//cout << temp << endl;
 					printFiles(directory.at(i).c_str(), dashA, dashL, dashR);
 				}
 			}
@@ -216,12 +222,60 @@ int main(int argc, char** argv)
 		else{//Ouput files in the current directory
 			printFiles(".", dashA, dashL, dashR);
 		}
-		//cout << endl;	
 	}
 
 	return 0;
 }
 
+void printPerm(const string & file, const char* directory)
+{
+	struct group  *group;
+	struct passwd *passwd;
+	struct stat s;
+	if( ( stat(file.c_str(), &s ) )==-1 )
+	{
+		perror("stat()");
+		exit(1);
+	}	
+
+	if(S_ISREG(s.st_mode)) cout << "-";
+	else if(S_ISDIR(s.st_mode)) cout << "d";
+	else if(S_ISCHR(s.st_mode)) cout << "c";
+	else if(S_ISBLK(s.st_mode)) cout << "b";
+	else if(S_ISLNK(s.st_mode)) cout << "l";
+	else if(S_ISSOCK(s.st_mode)) cout << "s";
+
+	cout << ((s.st_mode & S_IRUSR) ? "r" : "-");					
+	cout << ((s.st_mode & S_IWUSR) ? "w" : "-");
+	cout << ((s.st_mode & S_IXUSR) ? "x" : "-");
+	cout << ((s.st_mode & S_IRGRP) ? "r" : "-");					
+	cout << ((s.st_mode & S_IWGRP) ? "w" : "-");
+	cout << ((s.st_mode & S_IXGRP) ? "x" : "-");
+	cout << ((s.st_mode & S_IROTH) ? "r" : "-");					
+	cout << ((s.st_mode & S_IWOTH) ? "w" : "-");
+	cout << ((s.st_mode & S_IXOTH) ? "x" : "-");
+	//===Number of Hard Links==============
+	cout << setw(2) << s.st_nlink << " ";
+
+	group = getgrgid(s.st_gid); 
+	if(group==NULL) perror("getgrid()");
+	passwd = getpwuid(s.st_uid);
+	if(passwd==NULL) perror("getpwuid()");
+	//===TIME===============================
+	//string time;
+	//time = ctime(&s.st_mtime);
+	time_t t = s.st_mtime;
+	struct tm lt;
+	localtime_r(&t, &lt);
+	char time[80];
+	strftime(time,sizeof(time), "%c", &lt);
+	//===OUTPUT=============================
+	cout << setw(8) << passwd->pw_name;
+	cout << setw(8) << group->gr_name;
+	cout << setw(8) << s.st_size << " ";
+	cout << setw(20) << time << " ";
+	cout << file << endl;
+}
 
 /*
 	else if(dashL && !dashR)//-l -a or -l
