@@ -31,6 +31,8 @@ void printFiles(const char* directory, bool& dashA, bool& dashL, bool& dashR)
 {
 	vector<string>files;
 	vector<string>dir;
+	int totalBlocks = 0;
+
 	
 	DIR *dirp;
 	if(NULL == (dirp = opendir(directory)))
@@ -78,12 +80,17 @@ void printFiles(const char* directory, bool& dashA, bool& dashL, bool& dashR)
 			perror("stat()");
 			exit(1);
 		}	
+		//BLOCK SIZE
+		if(!dashA && files.at(i).at(0)!='.') totalBlocks+=(s.st_blocks);
+		else if(dashA) totalBlocks+=(s.st_blocks);	
+		
 	 	if(S_ISDIR(s.st_mode) && files.at(i)!=".." && files.at(i)!=".")
 		{
 			if(files.at(i).at(files.at(i).size()-1)!='/')
 			{	
 				files.at(i) = files.at(i) + '/'; 
 			}
+
 			char currDir[1024];
 			if((getcwd(currDir, sizeof(currDir))==NULL)) perror("getcwd");
 			dir.push_back(tmp);
@@ -93,7 +100,7 @@ void printFiles(const char* directory, bool& dashA, bool& dashL, bool& dashR)
 //========================================================================
 	sort(files.begin(), files.end());
 	sort(dir.begin(), dir.end());
-	int maxW = 60;
+	int maxW = 70;
 	int currW = 0;
 	unsigned int w = 0;
 	//GETS MAXIMUM SIZE OF STRINGS
@@ -101,8 +108,8 @@ void printFiles(const char* directory, bool& dashA, bool& dashL, bool& dashR)
 	{
 		if((files.at(i).size()) > w) w = files.at(i).size();
 	}
-	
 	if(dashR) cout << directory << ":" << endl;
+	if(dashL) cout << "total " << (totalBlocks/2) << endl;
 	for(unsigned int i = 0; i < files.size(); i++)
 	{
 		if(!dashL){
@@ -111,7 +118,7 @@ void printFiles(const char* directory, bool& dashA, bool& dashL, bool& dashR)
 				currW = 0;
 			}
 			currW+= files.at(i).size()+1;
-			cout << setw(w) << files.at(i) << "  ";
+			cout << setw(w) << left << files.at(i) << "  ";
 		} 
 		else if(dashL){
 			string directory2(directory);
@@ -191,11 +198,10 @@ int main(int argc, char** argv)
 			//For Files
 			if(files.size()>0)
 			{	
-				int maxWidth = 60;
+				int maxWidth = 70;
 				int currWidth = 0;
 				for(unsigned int i = 0; i < files.size(); i++)
 				{
-					//if(files.size()==0 || files.empty()) break;
 					if(currWidth>=maxWidth)
 					{
 						currWidth = 0;
@@ -203,8 +209,8 @@ int main(int argc, char** argv)
 					}
 					if(dashL) printPerm(files.at(i), ".");
 					else{
-						currWidth += files.at(i).size() + 1;
-						cout << files.at(i) << " ";
+						currWidth += files.at(i).size() + 2;
+						cout << files.at(i) << "  ";
 					}
 				}
 				cout << endl;
@@ -214,10 +220,6 @@ int main(int argc, char** argv)
 				//For Directories;
 				for(unsigned int i = 0; i < directory.size(); i++)
 				{
-					//cout << directory.at(i) << endl;
-					//string temp = "./";
-					//temp += directory.at(i);
-					//cout << temp << endl;
 					printFiles(directory.at(i).c_str(), dashA, dashL, dashR);
 				}
 			}
