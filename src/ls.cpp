@@ -24,108 +24,108 @@
 using namespace std;
 
 
-void printPerm(const string & file, const char* directory);
+void printPerm(const string & file);
 
 
 void printFiles(const char* directory, bool& dashA, bool& dashL, bool& dashR)
 {
 	vector<string>files;
 	vector<string>dir;
+	
+	DIR *dirp;
+	if(NULL == (dirp = opendir(directory)))
+	{
+		perror("There was an error with opendir(). ");
+		exit(1);
+	}
+	struct dirent *filespecs;
+	errno = 0;
 
-	//if(!dashR)// -a or no flags
-	//{
-		DIR *dirp;
-		if(NULL == (dirp = opendir(directory)))
-		{
-			perror("There was an error with opendir(). ");
-			exit(1);
+	while(NULL != (filespecs = readdir(dirp)))
+	{
+		if(!dashA){//No Hidden files, ignore . files
+		if(filespecs->d_name[0]!='.') files.push_back(filespecs->d_name);
+			else continue;
 		}
-		struct dirent *filespecs;
-		errno = 0;
-		while(NULL != (filespecs = readdir(dirp)))
-		{
-			if(!dashA){//No Hidden files, ignore . files
-				if(filespecs->d_name[0]!='.') files.push_back(filespecs->d_name);
-				else continue;
-			}
-			else files.push_back(filespecs->d_name);
-		}
-		if(errno != 0)
-		{
-			perror("There was an error with readdir(). ");
-			exit(1);
-		}
-		if(-1 == closedir(dirp))
-		{
-			perror("There was an error with closedir(). ");
-			exit(1);
-		}
+		else files.push_back(filespecs->d_name);
+	}
+
+	if(errno != 0)
+	{
+		perror("There was an error with readdir(). ");
+		exit(1);
+	}
+
+	if(-1 == closedir(dirp))
+	{
+		perror("There was an error with closedir(). ");
+		exit(1);
+	}
 
 //=== -R setup ============================================================
-		for(unsigned int i = 0; i < files.size(); i++)
-		{
-			struct stat s;
-			if( ( stat(files.at(i).c_str(), &s ) )==-1 )
-			{
-				cerr << endl << "THIS STAT SHIT OVER HERE:" << files.at(i) << endl;
-				perror("stat()");
-				exit(1);
-			}	
-			//if(S_ISREG(s.st_mode)) files.push_back(userIN.at(i));//
-		 	if(S_ISDIR(s.st_mode) && files.at(i)!=".." && files.at(i)!=".")
-			{
-				if(files.at(i).at(files.at(i).size()-1)!='/')
-				{	
-					files.at(i) = files.at(i) + '/'; 
-				}
-				char currDir[1024];
-				if((getcwd(currDir, sizeof(currDir))==NULL)) perror("getcwd");
-				string nextDir(currDir);
-				nextDir += '/' + files.at(i);
-				//cerr << endl << "DIRECTORY: " << currDir << nextDir<< endl;
-				dir.push_back(nextDir);
 
+	for(unsigned int i = 0; i < files.size(); i++)
+	{
+		struct stat s;
+		string directory2(directory);
+		string tmp(directory);
+		if(directory2.at(directory2.size()-1)!='/') tmp+='/';
+		tmp+= files.at(i);
+		//cout << endl << tmp << endl;
+		if( ( stat(tmp.c_str(), &s ) )==-1 )
+		{
+			cerr << endl << "THIS STAT SHIT OVER HERE:" << files.at(i) << endl;
+			perror("stat()");
+			exit(1);
+		}	
+	 	if(S_ISDIR(s.st_mode) && files.at(i)!=".." && files.at(i)!=".")
+		{
+			if(files.at(i).at(files.at(i).size()-1)!='/')
+			{	
+				files.at(i) = files.at(i) + '/'; 
 			}
+			char currDir[1024];
+			if((getcwd(currDir, sizeof(currDir))==NULL)) perror("getcwd");
+			dir.push_back(tmp);
 		}
+	}
 
 //========================================================================
-		sort(files.begin(), files.end());
-		sort(dir.begin(), dir.end());
-		int maxW = 60;
-		int currW = 0;
-		unsigned int w = 0;
-		//GETS MAXIMUM SIZE OF STRINGS
-		for(unsigned int i = 0; i < files.size(); i++)
-		{
-			if((files.at(i).size()) > w) w = files.at(i).size();
-		}
-		
-		if(dashR) cout << directory << ":" << endl;
-		for(unsigned int i = 0; i < files.size(); i++)
-		{
-			if(!dashL){
-				if(currW>=maxW){
-					cout << endl;
-					currW = 0;
-				}
-				currW+= files.at(i).size()+1;
-				cout << setw(w) << files.at(i) << "  ";
-			} 
-			else if(dashL){
-				printPerm(files.at(i), directory);
-			}
-		}
-		
-		if(dashR)
-		{	
-			for(unsigned int i = 0; i < dir.size(); i++)
-			{
-				printFiles(dir.at(i).c_str(), dashA, dashL, dashR);
+	sort(files.begin(), files.end());
+	sort(dir.begin(), dir.end());
+	int maxW = 60;
+	int currW = 0;
+	unsigned int w = 0;
+	//GETS MAXIMUM SIZE OF STRINGS
+	for(unsigned int i = 0; i < files.size(); i++)
+	{
+		if((files.at(i).size()) > w) w = files.at(i).size();
+	}
+	
+	if(dashR) cout << directory << ":" << endl;
+	for(unsigned int i = 0; i < files.size(); i++)
+	{
+		if(!dashL){
+			if(currW>=maxW){
 				cout << endl;
+				currW = 0;
 			}
+			currW+= files.at(i).size()+1;
+			cout << setw(w) << files.at(i) << "  ";
+		} 
+		else if(dashL){
+			printPerm(files.at(i));
 		}
-
-		cout << endl;
+		if(files.size()==i -1) cout << endl << endl;
+	}
+	if(!dashL) cout << endl;
+	if(dashR)
+	{	
+		for(unsigned int i = 0; i < dir.size(); i++)
+		{
+			printFiles(dir.at(i).c_str(), dashA, dashL, dashR);
+		}
+	}
 }
 
 int main(int argc, char** argv)
@@ -196,7 +196,7 @@ int main(int argc, char** argv)
 						currWidth = 0;
 						cout << endl;
 					}
-					if(dashL) printPerm(files.at(i), ".");
+					if(dashL) printPerm(files.at(i));
 					else{
 						currWidth += files.at(i).size() + 1;
 						cout << files.at(i) << " ";
@@ -227,7 +227,7 @@ int main(int argc, char** argv)
 	return 0;
 }
 
-void printPerm(const string & file, const char* directory)
+void printPerm(const string & file)
 {
 	struct group  *group;
 	struct passwd *passwd;
@@ -276,77 +276,3 @@ void printPerm(const string & file, const char* directory)
 	cout << setw(20) << time << " ";
 	cout << file << endl;
 }
-
-/*
-	else if(dashL && !dashR)//-l -a or -l
-	{
-		DIR *dirp;
-		if(NULL == (dirp = opendir(directory)))
-		{
-			perror("There was an error with opendir(). ");
-			exit(1);
-		}
-				
-		struct dirent *filespecs;
-		errno = 0;
-		while(NULL != (filespecs = readdir(dirp)))
-		{
-			if(!dashA){
-				if(filespecs->d_name[0]!='.') files.push_back(filespecs->d_name);
-				else continue;
-			}
-			else files.push_back(filespecs->d_name);
-		}
-		if(errno != 0)
-		{
-			perror("There was an error with readdir(). ");
-			exit(1);
-		}
-		if(-1 == closedir(dirp))
-		{
-			perror("There was an error with closedir(). ");
-			exit(1);
-		}
-		sort(files.begin(), files.end());
-		for(unsigned int i = 0; i < files.size(); i++)
-		{
-			//cerr << files.at(i);
-			printPerm(files.at(i));
-			cout << endl;
-		}
-	}
-	
-	else if(!dashA && !dashL && !dashR)//No Flag
-	{
-		DIR *dirp;
-		if(NULL == (dirp = opendir(directory)))
-		{
-			perror("There was an error with opendir(). ");
-			exit(1);
-		}
-				
-		struct dirent *filespecs;
-		errno = 0;
-		while(NULL != (filespecs = readdir(dirp)))
-		{
-			if(filespecs->d_name[0]!='.') files.push_back(filespecs->d_name);
-			else continue;
-		}
-		if(errno != 0)
-		{
-			perror("There was an error with readdir(). ");
-			exit(1);
-		}
-		if(-1 == closedir(dirp))
-		{
-			perror("There was an error with closedir(). ");
-			exit(1);
-		}
-		sort(files.begin(), files.end());
-		for(unsigned int i = 0; i < files.size(); i++)
-		{
-			cout << files.at(i) << " ";
-		}
-		cout << endl;
-
-	}*/
