@@ -23,16 +23,20 @@
 #include<grp.h>
 using namespace std;
 
+#define PRINT_HID cout << "\033[47;m";
+#define PRINT_DIR cout << "\033[34m";
+#define PRINT_DIRHID cout << "\033[1;47;34m";
+#define PRINT_EXE cout << "\033[1;47;32m";
+#define PRINT_EXEHID cout << "\033[1;47;32m";
+#define OUT_DEFAULT cout << "\033[0;00m";
 
 void printPerm(const string & file, const string& path);
 
-
-void printFiles(const char* directory, bool& dashA, bool& dashL, bool& dashR)
+void printFiles(const char* directory, bool& dashA, bool& dashL, bool& dashR,bool& isMultDir)
 {
 	vector<string>files;
 	vector<string>dir;
 	int totalBlocks = 0;
-
 	
 	DIR *dirp;
 	if(NULL == (dirp = opendir(directory)))
@@ -40,6 +44,7 @@ void printFiles(const char* directory, bool& dashA, bool& dashL, bool& dashR)
 		perror("There was an error with opendir(). ");
 		exit(1);
 	}
+
 	struct dirent *filespecs;
 	errno = 0;
 
@@ -65,7 +70,6 @@ void printFiles(const char* directory, bool& dashA, bool& dashL, bool& dashR)
 	}
 
 //=== -R setup ============================================================
-
 	for(unsigned int i = 0; i < files.size(); i++)
 	{
 		struct stat s;
@@ -76,7 +80,6 @@ void printFiles(const char* directory, bool& dashA, bool& dashL, bool& dashR)
 		//cout << endl << tmp << endl;
 		if( ( stat(tmp.c_str(), &s ) )==-1 )
 		{
-			cerr << endl << "THIS STAT SHIT OVER HERE:" << files.at(i) << endl;
 			perror("stat()");
 			exit(1);
 		}	
@@ -96,7 +99,6 @@ void printFiles(const char* directory, bool& dashA, bool& dashL, bool& dashR)
 			dir.push_back(tmp);
 		}
 	}
-
 //========================================================================
 	sort(files.begin(), files.end());
 	sort(dir.begin(), dir.end());
@@ -108,10 +110,32 @@ void printFiles(const char* directory, bool& dashA, bool& dashL, bool& dashR)
 	{
 		if((files.at(i).size()) > w) w = files.at(i).size();
 	}
-	if(dashR) cout << directory << ":" << endl;
+	if(dashR || isMultDir) cout << directory << ":" << endl;
 	if(dashL) cout << "total " << (totalBlocks/2) << endl;
 	for(unsigned int i = 0; i < files.size(); i++)
 	{
+		/*
+		struct stat s;
+		if( ( stat(files.at(i).c_str(), &s ) )==-1 )
+		{
+			perror("stat()");
+			exit(1);
+		}	
+		bool is_dir = false;
+		bool is_exe = false;
+		OUT_DEFAULT //RESETS OUTPUT COLOR
+		if(S_ISDIR(s.st_mode)){
+			is_dir = true;
+			if(files.at(i).at(0)!='.') PRINT_DIR//DIRECTORY
+			else if(files.at(i).at(0)=='.') PRINT_DIRHID//HIDDEN_DIR
+		}
+		if(s.st_mode & S_IXUSR){
+			cout << "HERE";
+			is_exe = true;
+			if(files.at(i).at(0)!='.') PRINT_EXE 
+			else if(files.at(i).at(0)=='.') PRINT_EXEHID
+		}
+		if(files.at(i).at(0)=='.' && !is_exe && !is_dir) PRINT_HID*/
 		if(!dashL){
 			if(currW>=maxW){
 				cout << endl;
@@ -119,6 +143,7 @@ void printFiles(const char* directory, bool& dashA, bool& dashL, bool& dashR)
 			}
 			currW+= files.at(i).size()+1;
 			cout << setw(w) << left << files.at(i) << "  ";
+			OUT_DEFAULT
 		} 
 		else if(dashL){
 			string directory2(directory);
@@ -128,6 +153,7 @@ void printFiles(const char* directory, bool& dashA, bool& dashL, bool& dashR)
 
 			printPerm(files.at(i), tmp);
 		}
+		//OUT_DEFAULT
 		if(files.size()==i -1) cout << endl << endl;
 	}
 	if(!dashL) cout << endl;
@@ -135,7 +161,7 @@ void printFiles(const char* directory, bool& dashA, bool& dashL, bool& dashR)
 	{	
 		for(unsigned int i = 0; i < dir.size(); i++)
 		{
-			printFiles(dir.at(i).c_str(), dashA, dashL, dashR);
+			printFiles(dir.at(i).c_str(), dashA, dashL, dashR, isMultDir);
 		}
 	}
 }
@@ -149,22 +175,22 @@ int main(int argc, char** argv)
 	bool dashA = false;
 	bool dashL = false;
 	bool dashR = false;
+	bool isMultDir = false;
 
-	if(argc < 1)
+	if(argc < 1)//Not enough Arguments passed in
 	{
 		cout << "No Arguments Passed" << endl;
 		exit(1);
 	}
 	else
 	{
-		//Takes all user input, but drops all flags 
+		//Takes all user input, and looks for the flags 
 		for(int i = 1; i < argc; i++)
 		{
 			if(argv[i][0]!=' ' && argv[i][0]!='-') userIN.push_back(argv[i]); //Non flag
 			else if(argv[i][0]!=' ' && argv[i][0]=='-') //Possible Flags
 			{
 				for(int j = 1; argv[i][j]!='\0'; j++){
-					//cout << "ARG: " << argv[i][j] << endl;
 					if(argv[i][j]=='a') dashA = true;
 					else if(argv[i][j]=='l') dashL = true;
 					else if(argv[i][j]=='R') dashR = true;
@@ -176,7 +202,7 @@ int main(int argc, char** argv)
 			}
 			else{}
 		}
-		if(userIN.size() > 0){	
+		if(userIN.size() > 0){//Sorts data into files and directories vector
 			for(unsigned int i = 0; i < userIN.size(); i++)
 			{
 				struct stat s;
@@ -196,41 +222,63 @@ int main(int argc, char** argv)
 				}
 			}
 			//For Files
+			sort(directory.begin(), directory.end());
+			sort(files.begin(), files.end());
 			if(files.size()>0)
 			{	
 				int maxWidth = 70;
 				int currWidth = 0;
 				for(unsigned int i = 0; i < files.size(); i++)
 				{
+					/*
+					bool is_exe = false;
+					bool is_dir = false;
+					struct stat s;
+					if( ( stat(files.at(i).c_str(), &s ) )==-1 )
+					{
+						perror("stat()");
+						exit(1);
+					}*/
 					if(currWidth>=maxWidth)
 					{
 						currWidth = 0;
 						cout << endl;
 					}
 					if(dashL) printPerm(files.at(i), ".");
-					else{
+					else{/*
+						OUT_DEFAULT //RESETS OUTPUT COLOR
+						if(S_ISDIR(s.st_mode)){
+							is_dir = true;
+							if(files.at(i).at(0)!='.') PRINT_DIR//DIRECTORY
+							else if(files.at(i).at(0)=='.') PRINT_DIRHID//HIDDEN_DIR
+						}
+						if(S_IXUSR & s.st_mode){
+							is_exe = true;
+							if(files.at(i).at(0)!='.') PRINT_EXE 
+							else if(files.at(i).at(0)=='.') PRINT_EXEHID
+						}
+						if(files.at(i).at(0)=='.' && !is_exe && !is_dir) PRINT_HID*/
 						currWidth += files.at(i).size() + 2;
 						cout << files.at(i) << "  ";
+						//OUT_DEFAULT //RESETS OUTPUT COLOR
 					}
 				}
 				cout << endl;
 			}
 			if(directory.size()>0)
 			{	
+				isMultDir = true;
 				//For Directories;
 				for(unsigned int i = 0; i < directory.size(); i++)
 				{
-					printFiles(directory.at(i).c_str(), dashA, dashL, dashR);
+					printFiles(directory.at(i).c_str(), dashA, dashL, dashR, isMultDir);
 				}
 			}
-
-			
 		}
 		else{//Ouput files in the current directory
-			printFiles(".", dashA, dashL, dashR);
+			printFiles(".", dashA, dashL, dashR, isMultDir);
 		}
 	}
-
 	return 0;
 }
 
@@ -244,13 +292,12 @@ void printPerm(const string & file, const string& path)
 		perror("stat()");
 		exit(1);
 	}	
-
+	//Acces Permissions
 	if(S_ISREG(s.st_mode)) cout << "-";
 	else if(S_ISDIR(s.st_mode)) cout << "d";
 	else if(S_ISCHR(s.st_mode)) cout << "c";
 	else if(S_ISBLK(s.st_mode)) cout << "b";
 	else if(S_ISLNK(s.st_mode)) cout << "l";
-	else if(S_ISSOCK(s.st_mode)) cout << "s";
 
 	cout << ((s.st_mode & S_IRUSR) ? "r" : "-");					
 	cout << ((s.st_mode & S_IWUSR) ? "w" : "-");
@@ -263,14 +310,11 @@ void printPerm(const string & file, const string& path)
 	cout << ((s.st_mode & S_IXOTH) ? "x" : "-");
 	//===Number of Hard Links==============
 	cout << setw(2) << s.st_nlink << " ";
-
 	group = getgrgid(s.st_gid); 
 	if(group==NULL) perror("getgrid()");
 	passwd = getpwuid(s.st_uid);
 	if(passwd==NULL) perror("getpwuid()");
 	//===TIME===============================
-	//string time;
-	//time = ctime(&s.st_mtime);
 	time_t t = s.st_mtime;
 	struct tm lt;
 	localtime_r(&t, &lt);
@@ -282,4 +326,5 @@ void printPerm(const string & file, const string& path)
 	cout << setw(8) << s.st_size << " ";
 	cout << setw(20) << time << " ";
 	cout << file << endl;
+	//delete[] time;
 }

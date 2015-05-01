@@ -1,7 +1,7 @@
 # rshell
 Basic command shell called RSHELL. Outputs the current user on the terminal including the host name and '$' sign. It accepts commands and executes them. It also accepts multiple commands with connectors such as `||`, `&&` and `;`. Any command after `;` will be executed regardless of previous commands. Commands after `&&` will be executed only if the previous command succeeded. Commands after `||`will execute only if the previous command failed. This is a work in progress so several bugs waiting to be fixed exists. Anything after comment will be removed from the command argument. Typing `exit` exits the shell but `exit` should be the first command(anything after exit is ignore). `cd` is currently unsupported. (Under Tag: hw0)
 
-Added ls. (Under Tag: hw1)
+Added ls. (Under Tag: hw1). It works like the bash ls. It only support -l -a -R or any combination of the three flags but anything other than that, it will produce an error. It also accepts and optional file parameters.
 
 
 #Installation Guide
@@ -74,3 +74,10 @@ The code above excecutes `ls` since the first one failed(invalid) command, but i
 || ls
 ; ls
 ```
+
+
+##Bugs/ Limitations for ls
+###
+Sorting is not the same as from bash
+###
+Output is not left to right instead of top to bottom(bash)
