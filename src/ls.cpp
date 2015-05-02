@@ -112,7 +112,6 @@ int main(int argc, char** argv)
 					bool is_dir = false;
 					bool is_exe = false;
 					OUT_DEFAULT //RESETS OUTPUT COLOR
-					if(dashL) printPerm(files.at(i), ".");
 					if( ( stat(files.at(i).c_str(), &s ) )==-1 )
 					{
 						perror("stat()");
@@ -130,6 +129,7 @@ int main(int argc, char** argv)
 					}
 					if(files.at(i).at(0)=='.' && !is_exe && !is_dir) PRINT_HID
 					//=== OUTPUT =================================================
+					if(dashL) printPerm(files.at(i), ".");
 					else{
 						currWidth += files.at(i).size() + 2;
 						cout << files.at(i);

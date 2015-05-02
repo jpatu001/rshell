@@ -81,3 +81,7 @@ The code above excecutes `ls` since the first one failed(invalid) command, but i
 * Output is not left to right instead of top to bottom(bash)
 * Occasion of do_ypcall, probably a server problem
 * getpwuid sometimes recieves NULL, in this case, GROUP/ USER is used as default
+* Cannot handle flags or optional arguments with spaces
+```
+bin/ls -a        -l    -R
+```
