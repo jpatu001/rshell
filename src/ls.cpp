@@ -31,144 +31,8 @@ using namespace std;
 #define OUT_DEFAULT cout << "\033[0;00m";
 
 void printPerm(const string & file, const string& path);
-
-void printFiles(const char* directory, bool& dashA, bool& dashL, bool& dashR,bool& isMultDir)
-{
-	vector<string>files;
-	vector<string>dir;
-	int totalBlocks = 0;
-	
-	DIR *dirp;
-	if(NULL == (dirp = opendir(directory)))
-	{
-		perror("There was an error with opendir(). ");
-		exit(1);
-	}
-
-	struct dirent *filespecs;
-	errno = 0;
-
-	while(NULL != (filespecs = readdir(dirp)))
-	{
-		if(!dashA){//No Hidden files, ignore . files
-		if(filespecs->d_name[0]!='.') files.push_back(filespecs->d_name);
-			else continue;
-		}
-		else files.push_back(filespecs->d_name);
-	}
-
-	if(errno != 0)
-	{
-		perror("There was an error with readdir(). ");
-		exit(1);
-	}
-
-	if(-1 == closedir(dirp))
-	{
-		perror("There was an error with closedir(). ");
-		exit(1);
-	}
-
-//=== -R setup ============================================================
-	for(unsigned int i = 0; i < files.size(); i++)
-	{
-		struct stat s;
-		string directory2(directory);
-		string tmp(directory);
-		if(directory2.at(directory2.size()-1)!='/') tmp+='/';
-		tmp+= files.at(i);
-		if( ( stat(tmp.c_str(), &s ) )==-1 )
-		{
-			perror("stat()");
-			exit(1);
-		}	
-		//BLOCK SIZE
-		if(!dashA && files.at(i).at(0)!='.') totalBlocks+=(s.st_blocks);
-		else if(dashA) totalBlocks+=(s.st_blocks);	
-		
-	 	if(S_ISDIR(s.st_mode) && files.at(i)!=".." && files.at(i)!=".")
-		{
-			if(files.at(i).at(files.at(i).size()-1)!='/')
-			{	
-				files.at(i) = files.at(i) + '/'; 
-			}
-
-			char currDir[1024];
-			if((getcwd(currDir, sizeof(currDir))==NULL)) perror("getcwd");
-			dir.push_back(tmp);
-		}
-	}
-//========================================================================
-	sort(files.begin(), files.end());
-	sort(dir.begin(), dir.end());
-	int maxW = 70;
-	int currW = 0;
-	unsigned int w = 0;
-	//GETS MAXIMUM SIZE OF STRINGS
-	for(unsigned int i = 0; i < files.size(); i++)
-	{
-		if((files.at(i).size()) > w) w = files.at(i).size();
-	}
-	if(dashR || isMultDir) cout << directory << ":" << endl;
-	if(dashL) cout << "total " << (totalBlocks/2) << endl;
-	for(unsigned int i = 0; i < files.size(); i++)
-	{
- 		struct stat s;
- 		string directory2(directory);
-		string tmp(directory);
-		if(directory2.at(directory2.size()-1)!='/') tmp+='/';
-		tmp+= files.at(i);
-		if( ( stat(tmp.c_str(), &s ) )==-1 )
-		{
-			perror("stat()");
-			exit(1);
-		}	
-		//=== COLOR ====================================================
-		bool is_dir = false;
-		bool is_exe = false;
-		OUT_DEFAULT //RESETS OUTPUT COLOR
-		if(S_ISDIR(s.st_mode)){
-			is_dir = true;
-			if(files.at(i).at(0)!='.') PRINT_DIR//DIRECTORY
-			else if(files.at(i).at(0)=='.') PRINT_DIRHID//HIDDEN_DIR
-		}
-		if(s.st_mode & S_IXUSR && !is_dir){
-			is_exe = true;
-			if(files.at(i).at(0)!='.') PRINT_EXE 
-			if(files.at(i).at(0)=='.') PRINT_EXEHID
-		}
-		if(files.at(i).at(0)=='.' && !is_exe && !is_dir) PRINT_HID
-		//=============================================================
-		if(!dashL){
-			if(currW>=maxW){
-				cout << endl;
-				currW = 0;
-			}
-			currW+= files.at(i).size()+1;
-			cout << setw(w) << left << files.at(i);
-			OUT_DEFAULT //Resets cout color
-			cout << "  ";
-		} 
-		else if(dashL){
-			string directory2(directory);
-			string tmp(directory);
-			if(directory2.at(directory2.size()-1)!='/') tmp+='/';
-			tmp+= files.at(i);
-			printPerm(files.at(i), tmp);
-		}
-		OUT_DEFAULT //Resets cout color
-		if(files.size()==i -1) cout << endl << endl;
-	}
-	if(!dashL) cout << endl;
-	//RECURSIVE PRINTFILES: for -R
-	if(dashR)
-	{	
-		for(unsigned int i = 0; i < dir.size(); i++)
-		{
-			printFiles(dir.at(i).c_str(), dashA, dashL, dashR, isMultDir);
-		}
-	}
-}
+void printFiles(const char* directory, bool& dashA, bool& dashL, bool& dashR,bool& isMultDir);
+bool stringCOMP(const string& a, const string& b);
 
 int main(int argc, char** argv)
 {
@@ -230,8 +94,8 @@ int main(int argc, char** argv)
 				}
 			}
 			//For Files
-			sort(directory.begin(), directory.end());
-			sort(files.begin(), files.end());
+			sort(directory.begin(), directory.end(), stringCOMP);
+			sort(files.begin(), files.end(), stringCOMP);
 			if(files.size()>0)
 			{	
 				int maxWidth = 70;
@@ -380,4 +244,160 @@ void printPerm(const string & file, const string& path)
 	cout << file;
 	OUT_DEFAULT
 	cout << endl;
+}
+
+void printFiles(const char* directory, bool& dashA, bool& dashL, bool& dashR,bool& isMultDir)
+{
+	vector<string>files;
+	vector<string>dir;
+	int totalBlocks = 0;
+	
+	DIR *dirp;
+	if(NULL == (dirp = opendir(directory)))
+	{
+		perror("There was an error with opendir(). ");
+		exit(1);
+	}
+
+	struct dirent *filespecs;
+	errno = 0;
+
+	while(NULL != (filespecs = readdir(dirp)))
+	{
+		if(!dashA){//No Hidden files, ignore . files
+		if(filespecs->d_name[0]!='.') files.push_back(filespecs->d_name);
+			else continue;
+		}
+		else files.push_back(filespecs->d_name);
+	}
+
+	if(errno != 0)
+	{
+		perror("There was an error with readdir(). ");
+		exit(1);
+	}
+
+	if(-1 == closedir(dirp))
+	{
+		perror("There was an error with closedir(). ");
+		exit(1);
+	}
+
+//=== -R setup ============================================================
+	for(unsigned int i = 0; i < files.size(); i++)
+	{
+		struct stat s;
+		string directory2(directory);
+		string tmp(directory);
+		if(directory2.at(directory2.size()-1)!='/') tmp+='/';
+		tmp+= files.at(i);
+		if( ( stat(tmp.c_str(), &s ) )==-1 )
+		{
+			perror("stat()");
+			exit(1);
+		}	
+		//BLOCK SIZE
+		if(!dashA && files.at(i).at(0)!='.') totalBlocks+=(s.st_blocks);
+		else if(dashA) totalBlocks+=(s.st_blocks);	
+		
+	 	if(S_ISDIR(s.st_mode) && files.at(i)!=".." && files.at(i)!=".")
+		{
+			if(files.at(i).at(files.at(i).size()-1)!='/')
+			{	
+				files.at(i) = files.at(i) + '/'; 
+			}
+
+			char currDir[1024];
+			if((getcwd(currDir, sizeof(currDir))==NULL)) perror("getcwd");
+			dir.push_back(tmp);
+		}
+	}
+//========================================================================
+	sort(files.begin(), files.end(), stringCOMP);
+	sort(dir.begin(), dir.end(), stringCOMP);
+	int maxW = 70;
+	int currW = 0;
+	unsigned int w = 0;
+	//GETS MAXIMUM SIZE OF STRINGS
+	for(unsigned int i = 0; i < files.size(); i++)
+	{
+		if((files.at(i).size()) > w) w = files.at(i).size();
+	}
+	if(dashR || isMultDir) cout << directory << ":" << endl;
+	if(dashL) cout << "total " << (totalBlocks/2) << endl;
+	for(unsigned int i = 0; i < files.size(); i++)
+	{
+ 		struct stat s;
+ 		string directory2(directory);
+		string tmp(directory);
+		if(directory2.at(directory2.size()-1)!='/') tmp+='/';
+		tmp+= files.at(i);
+		if( ( stat(tmp.c_str(), &s ) )==-1 )
+		{
+			perror("stat()");
+			exit(1);
+		}	
+		//=== COLOR ====================================================
+		bool is_dir = false;
+		bool is_exe = false;
+		OUT_DEFAULT //RESETS OUTPUT COLOR
+		if(S_ISDIR(s.st_mode)){
+			is_dir = true;
+			if(files.at(i).at(0)!='.') PRINT_DIR//DIRECTORY
+			else if(files.at(i).at(0)=='.') PRINT_DIRHID//HIDDEN_DIR
+		}
+		if(s.st_mode & S_IXUSR && !is_dir){
+			is_exe = true;
+			if(files.at(i).at(0)!='.') PRINT_EXE 
+			if(files.at(i).at(0)=='.') PRINT_EXEHID
+		}
+		if(files.at(i).at(0)=='.' && !is_exe && !is_dir) PRINT_HID
+		//=============================================================
+		if(!dashL){
+			if(currW>=maxW){
+				cout << endl;
+				currW = 0;
+			}
+			currW+= files.at(i).size()+1;
+			cout << setw(w) << left << files.at(i);
+			OUT_DEFAULT //Resets cout color
+			cout << "  ";
+		} 
+		else if(dashL){
+			string directory2(directory);
+			string tmp(directory);
+			if(directory2.at(directory2.size()-1)!='/') tmp+='/';
+			tmp+= files.at(i);
+			printPerm(files.at(i), tmp);
+		}
+		OUT_DEFAULT //Resets cout color
+		if(files.size()==i -1) cout << endl << endl;
+	}
+	if(!dashL) cout << endl;
+	//RECURSIVE PRINTFILES: for -R
+	if(dashR)
+	{	
+		for(unsigned int i = 0; i < dir.size(); i++)
+		{
+			printFiles(dir.at(i).c_str(), dashA, dashL, dashR, isMultDir);
+		}
+	}
+}
+
+bool stringCOMP(const string& a, const string& b)
+{
+	unsigned int i = 0, j = 0;
+	//IGNORE . files
+	if((a.size()>1) && (a.at(0)=='.')) i++;
+	if((b.size()>1) && (b.at(0)=='.')) j++;
+
+	while( (i < a.size()) && (j < b.size()) )
+	{
+		if( (tolower(a.at(i))) < (tolower(b.at(j))) ) return true;
+		else if( (tolower(a.at(i))) > (tolower(b.at(j))) ) return false;
+
+		i++;
+		j++;
+	}
+	return (a.size() < b.size());
 }
