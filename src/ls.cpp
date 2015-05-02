@@ -300,8 +300,6 @@ int main(int argc, char** argv)
 void printPerm(const string & file, const string& path)
 {
 	OUT_DEFAULT
-	struct group  *group;
-	struct passwd *passwd;
 	struct stat s;
 	bool isExe = false;
 	bool isDir = false;
@@ -310,6 +308,22 @@ void printPerm(const string & file, const string& path)
 		perror("stat()");
 		exit(1);
 	}	
+	//=== IDs ================================	
+	struct group  *group;
+	struct passwd *passwd;
+	bool idFailed = false;
+	group = getgrgid(s.st_gid); 
+	if(group==NULL){
+		idFailed = true;
+		perror("getgrid()");
+	}
+	passwd = getpwuid(s.st_uid);
+	if(passwd==NULL){
+		idFailed = true;
+		perror("getpwuid()");
+	}
+	//========================================
+
 	//Access Permissions
 	if(S_ISREG(s.st_mode)) cout << "-";
 	else if(S_ISDIR(s.st_mode)){
@@ -331,18 +345,21 @@ void printPerm(const string & file, const string& path)
 	cout << ((s.st_mode & S_IXOTH) ? "x" : "-");
 	//===Number of Hard Links==============
 	cout << setw(2) << s.st_nlink << " ";
-	group = getgrgid(s.st_gid); 
-	if(group==NULL) perror("getgrid()");
-	passwd = getpwuid(s.st_uid);
-	if(passwd==NULL) perror("getpwuid()");
 	//===TIME===============================
+
 	time_t t = s.st_mtime;
 	struct tm lt;
 	localtime_r(&t, &lt);
 	char time[80];
 	strftime(time,sizeof(time), "%c", &lt);
-	cout << setw(8) << passwd->pw_name;
-	cout << setw(8) << group->gr_name;
+	if(!idFailed){
+		cout << setw(8) << passwd->pw_name;
+		cout << setw(8) << group->gr_name;
+	}
+	else if(idFailed){
+		cout << setw(8) << "USER";
+		cout << setw(8) << "GROUP";
+	}
 	cout << setw(8) << s.st_size << " ";
 	cout << setw(20) << time << " ";
 	//===COLORS=============================
