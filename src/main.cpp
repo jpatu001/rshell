@@ -15,6 +15,7 @@
 #include<string.h>
 #include<vector>
 #include<queue>
+#include<fcntl.h>
 #include<boost/tokenizer.hpp>
 using namespace std;
 using namespace boost;
@@ -22,13 +23,86 @@ using namespace boost;
 void execute(const string& cmd);
 void exitShell();
 void parse(const string&  cmd, queue<string>& ops);
-void findOPS(queue<string>& ops, string& cmd);
+void findOPS(queue<string>& ops, const string& cmd);
 bool validIN(string& in);
 	
 bool cmdWorked = false;	//Global variable to track if command succeeded
-bool failed = false;
-string prevConn = "";
 
+void removeSpaces(string& str)
+{
+	for(string::iterator i=str.begin(); i!=str.end(); i++)
+	{
+		if(*i==' ') {str.erase(i); i--;}
+	}  
+}
+void inputRed(const char* in, const char* in2)
+{
+	string cmd(in);
+	string file(in2);
+	if(cmd.size()==0 || file.size()==0)
+	{
+		cerr << "One argument is empty" << endl;
+		return;
+	}
+	removeSpaces(cmd);
+	removeSpaces(file);
+	cout << "First:" << cmd << endl;
+	cout << "Second:" << file << endl;
+	//Opens file for input
+	int fd;
+	if(-1==(fd = open(file.c_str(), O_RDONLY)))
+	{
+		cerr << "IN HERE BRUH" << endl;
+		perror("open()");
+		//exit(1);
+	}
+	//Copies old file descriptor
+	int oldfd;
+	if(-1==(oldfd = dup(0))){
+		perror("dup");
+		exit(1);
+	}
+	//Redirect input 
+	if(-1==dup2(fd,0)){
+		perror("dup2");
+		exit(1);
+	}
+	//Close other fd
+	if(-1==close(fd)){
+		perror("close()");
+		exit(1);
+	}
+	execute(cmd);
+	//Restore stdin
+	if(-1==dup2(oldfd,0)){
+		perror("dup2()");
+		exit(1);
+	}
+	if(-1==close(oldfd)){
+		perror("close()");
+		exit(1);
+	}
+}
+void outputRed(const char* in, const char* in2)
+{
+	string cmd(in);
+	string file(in2);
+	removeSpaces(cmd);
+	removeSpaces(file);
+	cout << "First:" << cmd << endl;
+	cout << "Second:" << file << endl;
+
+}
+void outputRedAppend(const char* in, const char* in2)
+{
+	string cmd(in);
+	string file(in2);
+	removeSpaces(cmd);
+	removeSpaces(file);
+	cout << "First:" << cmd << endl;
+	cout << "Second:" << file << endl;
+
+}
 int main()
 {
 
@@ -39,8 +113,8 @@ int main()
 
 	//Retrieves hostname
 	char host[64];
-	//gethostname(host, 64);	
-	if (gethostname(host, 64)==-1) perror("gethostname()");
+	gethostname(host, 64);	
+	if ((gethostname(host, 64))==-1) perror("gethostname()");
 
 	//Removes cs.ucr.edu
 	int i = 0;
@@ -70,48 +144,77 @@ int main()
 		if(!validIN(userIN)){}//Gets rid of all whitespaces entry 
 		else{
 			queue<string> ops;
-			findOPS(ops,userIN);
+			//queue<string> red;
+			//findOPS(ops,userIN);
+			findOPS(ops, userIN);
 			parse(userIN, ops);
 		}	
-
 	}
-
 	return 0;
 }
 
-void parse(const string&  cmd,queue<string>& ops)
+void parse(const string& cmd,queue<string>& ops)
 {
 	char* command =(char*)  cmd.c_str();
 	char* tok;
+	char* tok2;
 	string prev;
 	if(ops.size()!=0){
 		bool firstRound = true;
 		do{
-				//First command
-				if(firstRound){
-				tok = strtok(command, (ops.front()).c_str());
-				execute(tok);
-				if(ops.front()=="&&" && cmdWorked){
-					firstRound=false;
-					continue;
-				}	
-				else if(ops.front()==";"){
-					firstRound = false;
-					continue;
+			//First command
+			if(firstRound){
+				if(ops.front()!="<" && ops.front()!=">" && ops.front()!=">>" && ops.front()!="|")
+				{
+					tok = strtok(command, (ops.front()).c_str());
+					execute(tok);
+					if(ops.front()=="&&" && cmdWorked){
+						firstRound=false;
+						continue;
+					}		
+					else if(ops.front()==";"){
+						firstRound = false;
+						continue;
+					}
+					else if(ops.front()=="||" && !cmdWorked){
+						firstRound = false;
+						continue;
+					}	
+					else if(ops.front()=="||" && cmdWorked){
+						firstRound = false;
+						continue;
+					}
+					else return;
 				}
-				else if(ops.front()=="||" && !cmdWorked){
-					firstRound = false;
-					continue;
-				}	
-				
-				else if(ops.front()=="||" && cmdWorked){
-					firstRound = false;
-					continue;
+				else{//Redirections and pipe
+					tok = strtok(command, (ops.front()).c_str());
+					if(ops.front()=="<"){
+						ops.pop();
+						tok2 = strtok(NULL, ("<>&|;"));
+						inputRed(tok, tok2);
+						firstRound = false;
+						continue;
+					}
+					else if(ops.front()==">"){
+						ops.pop();
+						tok2 = strtok(NULL, ("<>&|;"));
+						outputRed(tok, tok2);
+						firstRound = false;
+						continue;
+					}
+					else if(ops.front()==">>"){
+						ops.pop();
+						tok2 = strtok(NULL, ("<>&|;"));
+						outputRedAppend(tok, tok2);
+						firstRound = false;
+						continue;
+					}
+					else return;
 				}
-				else return;
 			}
 			//Following commands
-			else if (ops.size()>1 && !firstRound){
+			else if (ops.size()>1 && !firstRound && ops.front()!="<" && ops.front()!=">"
+			&& ops.front()!=">>"){
 				if(ops.front()=="&&" && cmdWorked){
 					ops.pop();	
 					string tmp = ops.front();
@@ -174,7 +277,6 @@ void parse(const string&  cmd,queue<string>& ops)
 			}
 		}while(tok!=NULL && ops.size()!=0);
 	}
-
 	else{//SINGLE COMMANDS WITHOUT CONNECTORS
 		execute(cmd);
 	}
@@ -216,7 +318,6 @@ void execute(const string& cmd)
 		free(arg);
 		exit(3);//Sets exit status to 3
 		}	
-
 	}
 	else{//Parent
 		int parent = 0;
@@ -226,38 +327,55 @@ void execute(const string& cmd)
 			free(arg);//Free arg before exitting
 			exitShell();
 		}
-		
-	
 		if(WIFEXITED(parent) && WEXITSTATUS(parent)==3) {//Sets bool to false if the command didnt execute
 			cmdWorked = false;
 		}
 		else cmdWorked = true;//Else it executed correctly
 	}
-
 	free(arg);
-
-
 }
 
-void findOPS(queue<string>& ops, string& cmd){
+void findOPS(queue<string>& ops, const string& cmd){
 	//Gathers all operations and push to queue in order
 	for(unsigned int i = 0; i < cmd.size()-1; i++)
 	{
+		//AND
 		if(cmd.at(i)=='&' && cmd.at(i+1)=='&')
 		{
 			ops.push("&&");
 			i++;
 		}
+		//OR
 		else if(cmd.at(i)=='|' && cmd.at(i+1)=='|')
 		{
 			ops.push("||");
 			i++;
 		}
+		//SemiColon
 		else if(cmd.at(i)==';')
 		{
 			ops.push(";");
 		}
-
+		//PIPE
+		else if(cmd.at(i)=='|' && cmd.at(i+1)!='|' && cmd.at(i-1)!='|')
+		{
+			ops.push("|");
+		}
+		//INPUT REDIRECT
+		else if(cmd.at(i)=='<')
+		{
+			ops.push("<");
+		}
+		//OUTPUT REDIRECT
+		else if(cmd.at(i)=='>' && cmd.at(i+1)=='>')
+		{
+			ops.push(">>");
+			i++;
+		}
+		else if(cmd.at(i)=='>' && cmd.at(i+1)!='>' && cmd.at(i-1)!='>')
+		{
+			ops.push(">");
+		}
 	}
 }
 
