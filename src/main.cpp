@@ -27,65 +27,11 @@ void findOPS(queue<string>& ops, const string& cmd);
 bool validIN(string& in);	
 void removeSpaces(string& str);
 void inputRed(const char* in, const char* in2);
+void outputRed(const char* in, const char* in2);
+void outputRedAppend(const char* in, const char* in2);
 
 bool cmdWorked = false;	//Global variable to track if command succeeded
 
-void outputRed(const char* in, const char* in2)
-{
-	string cmd(in);
-	string file(in2);
-	if(file.size()==0)
-	{
-		cerr << "syntax error near unexpected token'newline'" << endl;
-		return;
-	}
-	//if(cmd.size()!=0) removeSpaces(cmd);
-	if(file.size()!=0) removeSpaces(file);
-	//Opens file for input
-	int fd;
-	if(-1==(fd = open(file.c_str(), O_WRONLY|O_CREAT|O_TRUNC,0666)))
-	{
-		perror("open()");
-		exit(1);
-	}
-	//Copies old file descriptor
-	int oldfd;
-	if(-1==(oldfd = dup(1))){
-		perror("dup");
-		exit(1);
-	}
-	//Redirect input 
-	if(-1==dup2(fd,1)){
-		perror("dup2");
-		exit(1);
-	}
-	//Close other fd
-	if(-1==close(fd)){
-		perror("close()");
-		exit(1);
-	}
-	execute(cmd);
-	//Restore stdin
-	if(-1==dup2(oldfd,1)){
-		perror("dup2()");
-		exit(1);
-	}
-	if(-1==close(oldfd)){
-		perror("close()");
-		exit(1);
-	}
-
-}
-void outputRedAppend(const char* in, const char* in2)
-{
-	string cmd(in);
-	string file(in2);
-	removeSpaces(cmd);
-	removeSpaces(file);
-	cout << "First:" << cmd << endl;
-	cout << "Second:" << file << endl;
-
-}
 int main()
 {
 
@@ -125,8 +71,6 @@ int main()
 		if(!validIN(userIN)){}//Gets rid of all whitespaces entry 
 		else{
 			queue<string> ops;
-			//queue<string> red;
-			//findOPS(ops,userIN);
 			findOPS(ops, userIN);
 			parse(userIN, ops);
 		}	
@@ -140,6 +84,7 @@ void parse(const string& cmd,queue<string>& ops)
 	char* tok;
 	char* tok2;
 	string prev;
+	bool prevCmdIO = false;
 	if(ops.size()!=0){
 		bool firstRound = true;
 		do{
@@ -168,6 +113,7 @@ void parse(const string& cmd,queue<string>& ops)
 					else return;
 				}
 				else{//Redirections and pipe
+					prevCmdIO = true;
 					tok = strtok(command, (ops.front()).c_str());
 					if(ops.front()=="<"){
 						ops.pop();
@@ -194,40 +140,84 @@ void parse(const string& cmd,queue<string>& ops)
 				}
 			}
 			//Following commands
-			else if (ops.size()>1 && !firstRound && ops.front()!="<" && ops.front()!=">"
-			&& ops.front()!=">>"){
-				if(ops.front()=="&&" && cmdWorked){
-					ops.pop();	
-					string tmp = ops.front();
-					tmp = tmp + "&";//Adds prev to delimiters
-					tok = strtok(NULL, tmp.c_str());
-					execute(tok);
-					continue;
-				}	
-				else if(ops.front()==";"){// && (cmdWorked||!cmdWorked)
-					ops.pop();
-					string tmp = ops.front();
-					tmp = tmp + ";";
-					tok = strtok(NULL, (ops.front()).c_str());
-					execute(tok);
-					continue;
-				}
-				else if(ops.front()=="||" && !cmdWorked){
-					ops.pop();
-					string tmp = ops.front();
-					tmp = tmp + "|";//Adds prev to delimters
-					tok = strtok(NULL, (ops.front()).c_str());
-					execute(tok);
-					continue;
-				}	
-				else if(ops.front()=="||" && cmdWorked)
+			else if (ops.size()>1 && !firstRound){
+				if(ops.front()!="<" && ops.front()!=">" && ops.front()!=">>" && ops.front()!="|")
 				{
-					ops.pop();
-					strtok(NULL, (ops.front()).c_str());
-					continue;
-				}	
-				
-				else continue;
+					if(ops.front()=="&&" && cmdWorked){
+						ops.pop();	
+						string tmp = ops.front();
+						tmp = tmp + "&";//Adds prev to delimiters
+						tok = strtok(NULL, tmp.c_str());
+						execute(tok);
+						continue;
+					}	
+					else if(ops.front()==";"){// && (cmdWorked||!cmdWorked)
+						ops.pop();
+						string tmp = ops.front();
+						tmp = tmp + ";";
+						tok = strtok(NULL, (ops.front()).c_str());
+						execute(tok);
+						continue;
+					}
+					else if(ops.front()=="||" && !cmdWorked){
+						ops.pop();
+						string tmp = ops.front();
+						tmp = tmp + "|";//Adds prev to delimters
+						tok = strtok(NULL, (ops.front()).c_str());
+						execute(tok);
+						continue;
+					}	
+					else if(ops.front()=="||" && cmdWorked)
+					{
+						ops.pop();
+						strtok(NULL, (ops.front()).c_str());
+						continue;
+					}	
+					else continue;
+				}
+				else{//Redirections and pipe
+					if(!prevCmdIO){
+						tok = strtok(NULL, (ops.front()).c_str());
+						if(ops.front()=="<"){
+							ops.pop();
+							tok2 = strtok(NULL, ("<>&|;"));
+							inputRed(tok, tok2);
+							continue;
+						}
+						else if(ops.front()==">"){
+							ops.pop();
+							tok2 = strtok(NULL, ("<>&|;"));
+							outputRed(tok, tok2);
+							continue;
+						}
+						else if(ops.front()==">>"){
+							ops.pop();
+							tok2 = strtok(NULL, ("<>&|;"));
+							outputRedAppend(tok, tok2);
+							continue;
+						}
+						else return;
+					}
+					else{
+						tok = strtok(NULL, (ops.front()).c_str());
+						if(ops.front()=="<"){
+							ops.pop();
+							inputRed(tok2, tok);
+							continue;
+						}
+						else if(ops.front()==">"){
+							ops.pop();
+							outputRed(tok2, tok);
+							continue;
+						}
+						else if(ops.front()==">>"){
+							ops.pop();
+							outputRedAppend(tok2, tok);
+							continue;
+						}
+						else return;	
+					}
+				}
 			}
 			else
 			{
@@ -269,16 +259,14 @@ void execute(const string& cmd)
 	char_separator<char> sep(" ;");//Sets char as space
 	tokenizer tokens(cmd, sep);//Sets separator as space " "
 	char **arg=(char**)malloc(100000000);//Allocate space for 100m Command Line
-	
-	//Exit if 'exit' was entered"
+	//===Exit if 'exit' was entered"===========================================
 	tokenizer::iterator iter = tokens.begin(); 
 	if((*iter)=="exit"){
 		free(arg);
 		exit(EXIT_SUCCESS);
 		exitShell();
 	}
-
-	//Parses the command with spaces
+	//===Parses the command with spaces========================================
 	int i = 0;
 	for(iter = tokens.begin(); iter!=tokens.end(); iter++, i++)
 	{
@@ -418,6 +406,97 @@ void inputRed(const char* in, const char* in2)
 	execute(cmd);
 	//Restore stdin
 	if(-1==dup2(oldfd,0)){
+		perror("dup2()");
+		exit(1);
+	}
+	if(-1==close(oldfd)){
+		perror("close()");
+		exit(1);
+	}
+}
+
+void outputRed(const char* in, const char* in2)
+{
+	string cmd(in);
+	string file(in2);
+	if(file.size()==0)
+	{
+		cerr << "syntax error near unexpected token'newline'" << endl;
+		return;
+	}
+	if(file.size()!=0) removeSpaces(file);
+	//Opens file for input
+	int fd;
+	if(-1==(fd = open(file.c_str(), O_WRONLY|O_CREAT|O_TRUNC,0666)))
+	{
+		perror("open()");
+		exit(1);
+	}
+	//Copies old file descriptor
+	int oldfd;
+	if(-1==(oldfd = dup(1))){
+		perror("dup");
+		exit(1);
+	}
+	//Redirect input 
+	if(-1==dup2(fd,1)){
+		perror("dup2");
+		exit(1);
+	}
+	//Close other fd
+	if(-1==close(fd)){
+		perror("close()");
+		exit(1);
+	}
+	execute(cmd);
+	//Restore stdout
+	if(-1==dup2(oldfd,1)){
+		perror("dup2()");
+		exit(1);
+	}
+	if(-1==close(oldfd)){
+		perror("close()");
+		exit(1);
+	}
+
+}
+
+void outputRedAppend(const char* in, const char* in2)
+{
+	string cmd(in);
+	string file(in2);
+	if(file.size()==0)
+	{
+		cerr << "syntax error near unexpected token'newline'" << endl;
+		return;
+	}
+	if(file.size()!=0) removeSpaces(file);
+	//Opens file for input
+	int fd;
+	if(-1==(fd = open(file.c_str(), O_WRONLY|O_CREAT|O_APPEND,0666)))
+	{
+		perror("open()");
+		exit(1);
+	}
+	//Copies old file descriptor
+	int oldfd;
+	if(-1==(oldfd = dup(1))){
+		perror("dup");
+		exit(1);
+	}
+	//Redirect input 
+	if(-1==dup2(fd,1)){
+		perror("dup2");
+		exit(1);
+	}
+	//Close other fd
+	if(-1==close(fd)){
+		perror("close()");
+		exit(1);
+	}
+	execute(cmd);
+	//Restore stdout
+	if(-1==dup2(oldfd,1)){
 		perror("dup2()");
 		exit(1);
 	}
