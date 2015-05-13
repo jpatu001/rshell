@@ -24,46 +24,38 @@ void execute(const string& cmd);
 void exitShell();
 void parse(const string&  cmd, queue<string>& ops);
 void findOPS(queue<string>& ops, const string& cmd);
-bool validIN(string& in);
-	
+bool validIN(string& in);	
+void removeSpaces(string& str);
+void inputRed(const char* in, const char* in2);
+
 bool cmdWorked = false;	//Global variable to track if command succeeded
 
-void removeSpaces(string& str)
-{
-	for(string::iterator i=str.begin(); i!=str.end(); i++)
-	{
-		if(*i==' ') {str.erase(i); i--;}
-	}  
-}
-void inputRed(const char* in, const char* in2)
+void outputRed(const char* in, const char* in2)
 {
 	string cmd(in);
 	string file(in2);
-	if(cmd.size()==0 || file.size()==0)
+	if(file.size()==0)
 	{
-		cerr << "One argument is empty" << endl;
+		cerr << "syntax error near unexpected token'newline'" << endl;
 		return;
 	}
-	removeSpaces(cmd);
-	removeSpaces(file);
-	cout << "First:" << cmd << endl;
-	cout << "Second:" << file << endl;
+	//if(cmd.size()!=0) removeSpaces(cmd);
+	if(file.size()!=0) removeSpaces(file);
 	//Opens file for input
 	int fd;
-	if(-1==(fd = open(file.c_str(), O_RDONLY)))
+	if(-1==(fd = open(file.c_str(), O_WRONLY|O_CREAT|O_TRUNC,0666)))
 	{
-		cerr << "IN HERE BRUH" << endl;
 		perror("open()");
-		//exit(1);
+		exit(1);
 	}
 	//Copies old file descriptor
 	int oldfd;
-	if(-1==(oldfd = dup(0))){
+	if(-1==(oldfd = dup(1))){
 		perror("dup");
 		exit(1);
 	}
 	//Redirect input 
-	if(-1==dup2(fd,0)){
+	if(-1==dup2(fd,1)){
 		perror("dup2");
 		exit(1);
 	}
@@ -74,7 +66,7 @@ void inputRed(const char* in, const char* in2)
 	}
 	execute(cmd);
 	//Restore stdin
-	if(-1==dup2(oldfd,0)){
+	if(-1==dup2(oldfd,1)){
 		perror("dup2()");
 		exit(1);
 	}
@@ -82,15 +74,6 @@ void inputRed(const char* in, const char* in2)
 		perror("close()");
 		exit(1);
 	}
-}
-void outputRed(const char* in, const char* in2)
-{
-	string cmd(in);
-	string file(in2);
-	removeSpaces(cmd);
-	removeSpaces(file);
-	cout << "First:" << cmd << endl;
-	cout << "Second:" << file << endl;
 
 }
 void outputRedAppend(const char* in, const char* in2)
@@ -110,10 +93,8 @@ int main()
 	//Gets user login name
 	name = getlogin();
 	if(name=="\0") perror("getlogin()");
-
 	//Retrieves hostname
 	char host[64];
-	gethostname(host, 64);	
 	if ((gethostname(host, 64))==-1) perror("gethostname()");
 
 	//Removes cs.ucr.edu
@@ -304,6 +285,7 @@ void execute(const string& cmd)
 		arg[i] =(char*) strdup((*iter).c_str());
 	}
 	arg[i] = NULL;
+
 	int pid = fork();
 	if(pid==-1){//Fork Error
 		perror("fork");
@@ -379,6 +361,14 @@ void findOPS(queue<string>& ops, const string& cmd){
 	}
 }
 
+void removeSpaces(string& str)
+{
+	for(string::iterator i=str.begin(); i!=str.end(); i++)
+	{
+		if(*i==' ') {str.erase(i); i--;}
+	}  
+}
+
 bool validIN(string& in)
 {
 	if(in.size()==0) return false;
@@ -389,4 +379,50 @@ bool validIN(string& in)
 void exitShell()
 {
 	exit(0);
+}
+
+void inputRed(const char* in, const char* in2)
+{
+	string cmd(in);
+	string file(in2);
+	if(file.size()==0)
+	{
+		cerr << "syntax error near unexpected token 'newline'" << endl;
+		return;
+	}
+	if(cmd.size()!=0) removeSpaces(cmd);
+	if(file.size()!=0) removeSpaces(file);
+	//Opens file for input
+	int fd;
+	if(-1==(fd = open(file.c_str(), O_RDONLY)))
+	{
+		perror("open()");
+		exit(1);
+	}
+	//Copies old file descriptor
+	int oldfd;
+	if(-1==(oldfd = dup(0))){
+		perror("dup");
+		exit(1);
+	}
+	//Redirect input 
+	if(-1==dup2(fd,0)){
+		perror("dup2");
+		exit(1);
+	}
+	//Close other fd
+	if(-1==close(fd)){
+		perror("close()");
+		exit(1);
+	}
+	execute(cmd);
+	//Restore stdin
+	if(-1==dup2(oldfd,0)){
+		perror("dup2()");
+		exit(1);
+	}
+	if(-1==close(oldfd)){
+		perror("close()");
+		exit(1);
+	}
 }

@@ -74,6 +74,8 @@ The code above excecutes `ls` since the first one failed(invalid) command, but i
 || ls
 ; ls
 ```
+###IO Redirection
+* The program exits when the input file is invalid, but throws a perror. Ex: `cat < nonexistingfile`
 
 
 ##Bugs/ Limitations for ls
