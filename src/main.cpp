@@ -27,7 +27,7 @@ void parse2(const string& cmd, queue<string>&ops);//For Piping and IO
 void findOPS(queue<string>& ops, const string& cmd);
 bool validIN(string& in);	
 void removeSpaces(string& str);
-void inputRed(const char* in, const char* in2);
+void inputRed(const char* in, const char* in1, const char* in2);
 void outputRed(const char* in, const char* in2);
 void outputRedAppend(const char* in, const char* in2);
 
@@ -87,14 +87,23 @@ void parse2(const string& cmd, queue<string>&ops)
 	tokenizer tokens(cmd, sep);//Sets separator as space " "
 	char* tok;
 	char* tok2;
+	char* tok3;
 	for(tokenizer::iterator itr = tokens.begin(); itr != tokens.end(); itr++)
 	{
 			if(ops.front()=="<"){
 				ops.pop();
 				tok = (char*) strdup((*itr).c_str());
 				tok2 = (char*) strdup((*(++itr)).c_str());
-				inputRed(tok, tok2);
-				continue;
+				if(ops.size()>0 && ops.front()==">"){
+					tok3 = (char*) strdup((*(++itr)).c_str());
+					ops.pop();
+					inputRed(tok,tok2,tok3);
+					continue;
+				}
+				else{
+					inputRed(tok, tok2, "nofilegiven");
+					continue;
+				}
 			}
 			else if(ops.front()==">"){
 				ops.pop();
@@ -330,10 +339,11 @@ void exitShell()
 	exit(0);
 }
 
-void inputRed(const char* in, const char* in2)
+void inputRed(const char* in, const char* in1, const char* in2)
 {
 	string cmd(in);
-	string file(in2);
+	string file(in1);
+	string file2(in2);
 	if(file.size()==0)
 	{
 		cerr << "syntax error near unexpected token 'newline'" << endl;
@@ -341,12 +351,38 @@ void inputRed(const char* in, const char* in2)
 	}
 	if(cmd.size()!=0) removeSpaces(cmd);
 	if(file.size()!=0) removeSpaces(file);
+	if(file.size()!=0) removeSpaces(file2);
 	//Opens file for input
 	int fd;
 	if(-1==(fd = open(file.c_str(), O_RDONLY)))
 	{
 		perror("open()");
 		exit(1);
+	}
+	int fd2, oldfd2;
+	//Changes stdout in file was given
+	if(file2!="nofilegiven")
+	{
+		if(-1==(fd2 = open(file2.c_str(), O_WRONLY|O_CREAT|O_TRUNC,0666)))
+		{
+			perror("open()");
+			exit(1);
+		}
+		//Copies old file descriptor
+		if(-1==(oldfd2 = dup(1))){
+			perror("dup");
+			exit(1);
+		}
+		//Redirect output
+		if(-1==dup2(fd2,1)){
+			perror("dup2");
+			exit(1);
+		}
+		//Close other fd2
+		if(-1==close(fd2)){
+			perror("close()");
+			exit(1);
+		}
 	}
 	//Copies old file descriptor
 	int oldfd;
@@ -365,6 +401,19 @@ void inputRed(const char* in, const char* in2)
 		exit(1);
 	}
 	execute(cmd);
+	//Closes stdout
+	if(file2!="nofilegiven")
+	{
+		//Restore stdout
+		if(-1==dup2(oldfd2,1)){
+			perror("dup2()");
+			exit(1);
+		}
+		if(-1==close(oldfd2)){
+			perror("close()");
+			exit(1);
+		}
+	}
 	//Restore stdin
 	if(-1==dup2(oldfd,0)){
 		perror("dup2()");
