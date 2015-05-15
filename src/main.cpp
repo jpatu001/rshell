@@ -27,14 +27,16 @@ void parse2(const string& cmd, queue<string>&ops);//For Piping and IO
 void findOPS(queue<string>& ops, const string& cmd);
 bool validIN(string& in);	
 void removeSpaces(string& str);
-void inputRed(const char* in, const char* in1, const char* in2);
+void inputRed(const char* in, const char* in1, const char* in2, bool isAppend);
 void stringRed(const char* in, const char* in1);
 void outputRed(const char* in, const char* in2);
 void outputRedAppend(const char* in, const char* in2);
+void piping(const char* in, const char* in1);
 
 bool cmdWorked = false;	//Global variable to track if command succeeded
-bool isPporRd = false;	
-bool isErrRed = false;
+bool isPporRd = false; //Set to true if the connectors are pipes or IO redirection	
+bool isErrRed = false; //Set to true if redirection with specific # is done eg.	`command #> file`
+int fileDescriptor = 2; //Saves the filedescriptor given by the user, used with isErrRed
 
 int main()
 {
@@ -65,6 +67,7 @@ int main()
 	{
 		isPporRd = false;
 		isErrRed = false;
+		fileDescriptor = 2;
 		cout << name << "$ ";
         getline(cin, userIN);
 		//Exit right away if exit was typed
@@ -100,17 +103,26 @@ void parse2(const string& cmd, queue<string>&ops)
 				if(ops.size()>0 && ops.front()==">"){
 					tok3 = (char*) strdup((*(++itr)).c_str());
 					ops.pop();
-					inputRed(tok,tok2,tok3);
+					inputRed(tok,tok2,tok3,false);
+					continue;
+				}
+				else if(ops.size()>0 && ops.front()==">>"){
+					tok3 = (char*) strdup((*(++itr)).c_str());
+					ops.pop();
+					inputRed(tok,tok2,tok3,true);
 					continue;
 				}
 				else{
-					inputRed(tok, tok2, "nofilegiven");
+					inputRed(tok, tok2, "nofilegiven",false);
 					continue;
 				}
 			}
-			//FIX THIS, THIS IS FOR STRING REDIRECTION
 			else if(ops.front()=="<<<"){
-			
+				ops.pop();
+				tok = (char*) strdup((*itr).c_str());
+				tok2 = (char*) strdup((*(++itr)).c_str());
+				stringRed(tok,tok2);
+				continue;
 			}
 			else if(ops.front()==">"){
 				ops.pop();
@@ -126,8 +138,39 @@ void parse2(const string& cmd, queue<string>&ops)
 				outputRedAppend(tok,tok2);
 				continue;
 			}
+			else if(ops.front()=="|"){
+				ops.pop();
+				tok = (char*) strdup((*itr).c_str());
+				tok2 = (char*) strdup((*(++itr)).c_str());
+				piping(tok,tok2);
+				continue;
+			}
 			else break;
 	}
+}
+
+void piping(const char* in, const char* in1)
+{
+	string cmd1(in);
+	string cmd2(in1);
+	int fds[2];
+	int oldfdi;
+	int oldfdo;
+	if(-1==pipe(fds)) perror("pipe()");
+	if(-1==(oldfdo=dup(1))) perror("dup");//Backup of OUT
+	if(-1==(oldfdi=dup(0))) perror("dup");//Backup of IN
+	if(-1==(dup2(fds[1],1))) perror("dup2()");//Out of first command goes to pipe
+	execute(cmd1);
+	//Restore Stdout
+	if(-1==dup2(oldfdo,1)) perror("dup2()");//Restore stdout
+	if(-1==close(oldfdo)) perror("close()");
+	if(-1==close(fds[1])) perror("close()");	
+	if(-1==(dup2(fds[0],0))) perror("dup2()");//In of second command comes from pipe
+	execute(cmd2);
+	//Restoring stdin
+	if(-1==dup2(oldfdi,0)) perror("dup2()");//Restore stdin
+	if(-1==close(oldfdi)) perror("close()");
+	if(-1==close(fds[0])) perror("close()");	
 }
 
 void parse(const string& cmd,queue<string>& ops)
@@ -201,6 +244,7 @@ void parse(const string& cmd,queue<string>& ops)
 				ops.pop();
 				char** tmp = (char**) malloc(10000);
 				int j = 0;
+
 				//TOKENIZE
 				while(tok!=NULL)	
 				{
@@ -322,14 +366,20 @@ void findOPS(queue<string>& ops, const string& cmd){
 		else if(cmd.at(i)=='>' && cmd.at(i+1)=='>')
 		{
 			isPporRd = true;	
-			if(cmd.at(i-1)=='2') isErrRed = true;
+			if(cmd.at(i-1)>='0' && cmd.at(i-1)<='9'){
+				isErrRed = true;
+				fileDescriptor = cmd.at(i-1) - '0';
+			}
 			ops.push(">>");
 			i++;
 		}
 		else if(cmd.at(i)=='>' && cmd.at(i+1)!='>' && cmd.at(i-1)!='>')
 		{
 			isPporRd = true;	
-			if(cmd.at(i-1)=='2') isErrRed = true;
+			if(cmd.at(i-1)>='0' && cmd.at(i-1)<='9'){
+				isErrRed = true;
+				fileDescriptor = cmd.at(i-1) - '0';
+			}
 			ops.push(">");
 		}
 	}
@@ -355,7 +405,7 @@ void exitShell()
 	exit(0);
 }
 
-void inputRed(const char* in, const char* in1, const char* in2)
+void inputRed(const char* in, const char* in1, const char* in2, bool isAppend)
 {
 	string cmd(in);
 	string file(in1);
@@ -379,10 +429,19 @@ void inputRed(const char* in, const char* in1, const char* in2)
 	//Changes stdout in file was given
 	if(file2!="nofilegiven")
 	{
-		if(-1==(fd2 = open(file2.c_str(), O_WRONLY|O_CREAT|O_TRUNC,0666)))
-		{
-			perror("open()");
-			exit(1);
+		if(!isAppend){
+			if(-1==(fd2 = open(file2.c_str(), O_WRONLY|O_CREAT|O_TRUNC,0666)))
+			{
+				perror("open()");
+				exit(1);
+			}
+		}
+		else{
+			if(-1==(fd2 = open(file2.c_str(), O_WRONLY|O_CREAT|O_APPEND,0666)))
+			{
+				perror("open()");
+				exit(1);
+			}
 		}
 		//Copies old file descriptor
 		if(-1==(oldfd2 = dup(1))){
@@ -442,7 +501,31 @@ void inputRed(const char* in, const char* in1, const char* in2)
 }
 void stringRed(const char* in, const char* in1)
 {
+	string cmd(in);
+	string exec = "echo ";
+	string tmp(in1);
+	tmp = tmp.substr(tmp.find('"')+1, tmp.size()-1);//Removes first "
+	if(tmp.at(tmp.size()-1)=='"') tmp.erase(tmp.size()-1);//Removes last "
+	exec = exec + tmp; //Concatonate echo before the string
 	
+	int fds[2];
+	int oldfdi;
+	int oldfdo;
+	if(-1==pipe(fds)) perror("pipe()");
+	//Left Side
+	if(-1==(oldfdo=dup(1))) perror("dup");//Backup of OUT
+	if(-1==(dup2(fds[1],1))) perror("dup2()");//Out of first command goes to pipe
+	execute(exec);
+	if(-1==dup2(oldfdo,1)) perror("dup2()");//Restore stdout
+	if(-1==close(oldfdo)) perror("close()");
+	if(-1==close(fds[1])) perror("close()");
+	//Right Side
+	if(-1==(oldfdi=dup(0))) perror("dup");//Backup of IN
+	if(-1==(dup2(fds[0],0))) perror("dup2()");//In of second command comes from pipe
+	execute(cmd);
+	if(-1==dup2(oldfdi,0)) perror("dup2()");//Restore stdin
+	if(-1==close(oldfdi)) perror("close()");
+	if(-1==close(fds[0])) perror("close()");
 }
 void outputRed(const char* in, const char* in2)
 {
@@ -466,12 +549,12 @@ void outputRed(const char* in, const char* in2)
 		cmd = cmd.erase(cmd.size()-1); //Removes #2 from error redirection
 		//Copies old file descriptor
 		int oldfd;
-		if(-1==(oldfd = dup(2))){
+		if(-1==(oldfd = dup(fileDescriptor))){
 			perror("dup");
 				exit(1);
 		}
 		//Redirect output 
-		if(-1==dup2(fd,2)){
+		if(-1==dup2(fd,fileDescriptor)){
 			perror("dup2");
 			exit(1);
 		}
@@ -482,7 +565,7 @@ void outputRed(const char* in, const char* in2)
 		}
 		execute(cmd);
 		//Restore stdout
-		if(-1==dup2(oldfd,2)){
+		if(-1==dup2(oldfd,fileDescriptor)){
 			perror("dup2()");
 			exit(1);
 		}
@@ -544,12 +627,12 @@ void outputRedAppend(const char* in, const char* in2)
 		cmd = cmd.erase(cmd.size()-1); //Removes #2 from error redirection
 		//Copies old file descriptor
 		int oldfd;
-		if(-1==(oldfd = dup(2))){
+		if(-1==(oldfd = dup(fileDescriptor))){
 			perror("dup");
 				exit(1);
 		}
 		//Redirect output 
-		if(-1==dup2(fd,2)){
+		if(-1==dup2(fd,fileDescriptor)){
 			perror("dup2");
 			exit(1);
 		}
@@ -560,7 +643,7 @@ void outputRedAppend(const char* in, const char* in2)
 		}
 		execute(cmd);
 		//Restore stdout
-		if(-1==dup2(oldfd,2)){
+		if(-1==dup2(oldfd,fileDescriptor)){
 			perror("dup2()");
 			exit(1);
 		}
