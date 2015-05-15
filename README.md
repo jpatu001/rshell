@@ -3,6 +3,7 @@ Basic command shell called RSHELL. Outputs the current user on the terminal incl
 
 Added ls. (Under Tag: hw1). It works like the bash ls. It only support -l -a -R or any combination of the three flags but anything other than that, it will produce an error. It also accepts and optional file parameters.
 
+Added Pipe and IO Redirection(Under Tag: hw2). Supports `<` `>` `>>` `2>` or `2>>` for redirection. 
 
 #Installation Guide
 ```
@@ -76,7 +77,7 @@ The code above excecutes `ls` since the first one failed(invalid) command, but i
 ```
 ###IO Redirection
 * The program exits when the input file is invalid, but throws a perror. Ex: `cat < nonexistingfile`
-
+* Reads '<<' as '<' 
 
 ##Bugs/ Limitations for ls
 * Sorting is not the same as from bash

@@ -28,11 +28,13 @@ void findOPS(queue<string>& ops, const string& cmd);
 bool validIN(string& in);	
 void removeSpaces(string& str);
 void inputRed(const char* in, const char* in1, const char* in2);
+void stringRed(const char* in, const char* in1);
 void outputRed(const char* in, const char* in2);
 void outputRedAppend(const char* in, const char* in2);
 
-bool isPporRd = false; //True when piping and/ or IO redirecting
 bool cmdWorked = false;	//Global variable to track if command succeeded
+bool isPporRd = false;	
+bool isErrRed = false;
 
 int main()
 {
@@ -62,6 +64,7 @@ int main()
 	while(1)
 	{
 		isPporRd = false;
+		isErrRed = false;
 		cout << name << "$ ";
         getline(cin, userIN);
 		//Exit right away if exit was typed
@@ -105,6 +108,10 @@ void parse2(const string& cmd, queue<string>&ops)
 					continue;
 				}
 			}
+			//FIX THIS, THIS IS FOR STRING REDIRECTION
+			else if(ops.front()=="<<<"){
+			
+			}
 			else if(ops.front()==">"){
 				ops.pop();
 				tok = (char*) strdup((*itr).c_str());
@@ -122,6 +129,7 @@ void parse2(const string& cmd, queue<string>&ops)
 			else break;
 	}
 }
+
 void parse(const string& cmd,queue<string>& ops)
 {
 	char* command =(char*)  cmd.c_str();
@@ -299,21 +307,29 @@ void findOPS(queue<string>& ops, const string& cmd){
 			ops.push("|");
 		}
 		//INPUT REDIRECT
-		else if(cmd.at(i)=='<')
+		else if(cmd.at(i)=='<' && cmd.at(i+1)!='<' && cmd.at(i+2)!='<')
 		{
 			isPporRd = true;	
 			ops.push("<");
+		}
+		else if(cmd.at(i)=='<' && cmd.at(i+1)=='<' && cmd.at(i+2)=='<')
+		{
+			isPporRd = true;	
+			ops.push("<<<");
+			i+=2;
 		}
 		//OUTPUT REDIRECT
 		else if(cmd.at(i)=='>' && cmd.at(i+1)=='>')
 		{
 			isPporRd = true;	
+			if(cmd.at(i-1)=='2') isErrRed = true;
 			ops.push(">>");
 			i++;
 		}
 		else if(cmd.at(i)=='>' && cmd.at(i+1)!='>' && cmd.at(i-1)!='>')
 		{
 			isPporRd = true;	
+			if(cmd.at(i-1)=='2') isErrRed = true;
 			ops.push(">");
 		}
 	}
@@ -351,7 +367,7 @@ void inputRed(const char* in, const char* in1, const char* in2)
 	}
 	if(cmd.size()!=0) removeSpaces(cmd);
 	if(file.size()!=0) removeSpaces(file);
-	if(file.size()!=0) removeSpaces(file2);
+	if(file2.size()!=0) removeSpaces(file2);
 	//Opens file for input
 	int fd;
 	if(-1==(fd = open(file.c_str(), O_RDONLY)))
@@ -424,7 +440,10 @@ void inputRed(const char* in, const char* in1, const char* in2)
 		exit(1);
 	}
 }
-
+void stringRed(const char* in, const char* in1)
+{
+	
+}
 void outputRed(const char* in, const char* in2)
 {
 	string cmd(in);
@@ -442,31 +461,63 @@ void outputRed(const char* in, const char* in2)
 		perror("open()");
 		exit(1);
 	}
-	//Copies old file descriptor
-	int oldfd;
-	if(-1==(oldfd = dup(1))){
-		perror("dup");
-		exit(1);
+	if(isErrRed)
+	{
+		cmd = cmd.erase(cmd.size()-1); //Removes #2 from error redirection
+		//Copies old file descriptor
+		int oldfd;
+		if(-1==(oldfd = dup(2))){
+			perror("dup");
+				exit(1);
+		}
+		//Redirect output 
+		if(-1==dup2(fd,2)){
+			perror("dup2");
+			exit(1);
+		}
+		//Close other fd
+		if(-1==close(fd)){
+			perror("close()");
+			exit(1);
+		}
+		execute(cmd);
+		//Restore stdout
+		if(-1==dup2(oldfd,2)){
+			perror("dup2()");
+			exit(1);
+		}
+		if(-1==close(oldfd)){
+			perror("close()");
+			exit(1);
+		}
 	}
-	//Redirect input 
-	if(-1==dup2(fd,1)){
-		perror("dup2");
-		exit(1);
-	}
-	//Close other fd
-	if(-1==close(fd)){
-		perror("close()");
-		exit(1);
-	}
-	execute(cmd);
-	//Restore stdout
-	if(-1==dup2(oldfd,1)){
-		perror("dup2()");
-		exit(1);
-	}
-	if(-1==close(oldfd)){
-		perror("close()");
-		exit(1);
+	else{
+		//Copies old file descriptor
+		int oldfd;
+		if(-1==(oldfd = dup(1))){
+			perror("dup");
+				exit(1);
+		}
+		//Redirect output
+		if(-1==dup2(fd,1)){
+			perror("dup2");
+			exit(1);
+		}
+		//Close other fd
+		if(-1==close(fd)){
+			perror("close()");
+			exit(1);
+		}
+		execute(cmd);
+		//Restore stdout
+		if(-1==dup2(oldfd,1)){
+			perror("dup2()");
+			exit(1);
+		}
+		if(-1==close(oldfd)){
+			perror("close()");
+			exit(1);
+		}
 	}
 
 }
@@ -488,30 +539,62 @@ void outputRedAppend(const char* in, const char* in2)
 		perror("open()");
 		exit(1);
 	}
-	//Copies old file descriptor
-	int oldfd;
-	if(-1==(oldfd = dup(1))){
-		perror("dup");
-		exit(1);
+	if(isErrRed)
+	{
+		cmd = cmd.erase(cmd.size()-1); //Removes #2 from error redirection
+		//Copies old file descriptor
+		int oldfd;
+		if(-1==(oldfd = dup(2))){
+			perror("dup");
+				exit(1);
+		}
+		//Redirect output 
+		if(-1==dup2(fd,2)){
+			perror("dup2");
+			exit(1);
+		}
+		//Close other fd
+		if(-1==close(fd)){
+			perror("close()");
+			exit(1);
+		}
+		execute(cmd);
+		//Restore stdout
+		if(-1==dup2(oldfd,2)){
+			perror("dup2()");
+			exit(1);
+		}
+		if(-1==close(oldfd)){
+			perror("close()");
+			exit(1);
+		}
 	}
-	//Redirect input 
-	if(-1==dup2(fd,1)){
-		perror("dup2");
-		exit(1);
-	}
-	//Close other fd
-	if(-1==close(fd)){
-		perror("close()");
-		exit(1);
-	}
-	execute(cmd);
-	//Restore stdout
-	if(-1==dup2(oldfd,1)){
-		perror("dup2()");
-		exit(1);
-	}
-	if(-1==close(oldfd)){
-		perror("close()");
-		exit(1);
+	else{
+		//Copies old file descriptor
+		int oldfd;
+		if(-1==(oldfd = dup(1))){
+			perror("dup");
+			exit(1);
+		}
+		//Redirect input 
+		if(-1==dup2(fd,1)){
+			perror("dup2");
+			exit(1);
+		}
+		//Close other fd
+		if(-1==close(fd)){
+			perror("close()");
+			exit(1);
+		}
+		execute(cmd);
+		//Restore stdout
+		if(-1==dup2(oldfd,1)){
+			perror("dup2()");
+			exit(1);
+		}
+		if(-1==close(oldfd)){
+			perror("close()");
+			exit(1);
+		}
 	}
 }
