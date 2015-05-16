@@ -166,30 +166,47 @@ void piping(queue<string> cmd)
 	//First command, put output in pipe======================================
 	string command(cmd.front());
 	cmd.pop();
-	close(1);
+	if(-1==(close(1))) perror("close(1)");
 	if(-1==(dup(fd[1]))) perror("dup(fdout)");//STDOUT -> IN-PIPE
 	execute(command);
 	if(-1==(close(fd[1]))) perror("close(fd[1]]");//CLOSE ONE END OF PIPE
 	//=========================================================================	
-	bool hadMore = false;
-	if(cmd.size()>1)
+	bool flag = true;
+	while(cmd.size()>1)
 	{
-		string command2 = cmd.front();
-		cmd.pop();
-		if(-1==(close(0))) perror("close(0)");
-		if(-1==(dup(fd[0]))) perror("dup(fd[0])"); //STDIN -> OUT-PIPE
-		if(-1==(close(1))) perror("close(1)");
-		if(-1==(dup(fd2[1]))) perror("dup(fd2[1])"); //STDOUT -> OUT-PIPE2
-		execute(command2);
-		if(-1==(close(fd[0]))) perror("close(fd[0])");
-		if(-1==(close(fd2[1]))) perror("close(fd2[1])");
-		hadMore = true;	
+		if(!flag) pipe(fd);
+		else pipe(fd2);
+		if(flag){
+			string command2 = cmd.front();
+			cmd.pop();
+			if(-1==(close(0))) perror("close(0)");
+			if(-1==(dup(fd[0]))) perror("dup(fd[0])"); //STDIN -> OUT-PIPE
+			if(-1==(close(1))) perror("close(1)");
+			if(-1==(dup(fd2[1]))) perror("dup(fd2[1])"); //STDOUT -> OUT-PIPE2
+			execute(command2);
+			if(-1==(close(fd[0]))) perror("close(fd[0])");
+			if(-1==(close(fd2[1]))) perror("close(fd2[1])");
+			flag = false;
+		}
+		else//Read from fd2 write to fd
+		{
+			string command2 = cmd.front();
+			cmd.pop();
+			if(-1==(close(0))) perror("close(0)");
+			if(-1==(dup(fd2[0]))) perror("dup(fd2[0])"); //STDIN -> OUT-PIPE2
+			if(-1==(close(1))) perror("close(1)");
+			if(-1==(dup(fd[1]))) perror("dup(fd[1])"); //STDOUT -> OUT-PIPE
+			execute(command2);
+			if(-1==(close(fd2[0]))) perror("close(fd2[0])");
+			if(-1==(close(fd[1]))) perror("close(fd[1])");
+			flag = true;
+		}
 	}
 	//Last part, restore all out, take input from pipe, and output to stdout
 	command = cmd.front();
 	cmd.pop();
 	if(-1==(close(0))) perror("close(0)");
-	if(hadMore){
+	if(!flag){
 		if(-1==(dup(fd2[0]))) perror("dup(fd2[0])"); //STDIN -> OUT-PIPE2
 	}
 	else{
@@ -200,7 +217,7 @@ void piping(queue<string> cmd)
 	execute(command);
 	if(-1==(dup2(oldfdi,0))) perror("dup(oldfdi)");//Restore stdin
 	if(-1==(close(oldfdi))) perror("close(olfdi)");	
-	if(!hadMore){
+	if(flag){
 		if(-1==(close(fd[0]))) perror("close(fd[0]");//CLOSE ONE END OF PIPE
 	}
 	else{
