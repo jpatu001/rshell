@@ -31,8 +31,8 @@ void inputRed(const char* in, const char* in1, const char* in2, bool isAppend);
 void stringRed(const char* in, const char* in1);
 void outputRed(const char* in, const char* in2);
 void outputRedAppend(const char* in, const char* in2);
-void piping(const char* in, const char* in1);
-
+//void piping(const char* in, const char* in1);
+void piping(queue<string> vec);
 bool cmdWorked = false;	//Global variable to track if command succeeded
 bool isPporRd = false; //Set to true if the connectors are pipes or IO redirection	
 bool isErrRed = false; //Set to true if redirection with specific # is done eg.	`command #> file`
@@ -139,16 +139,69 @@ void parse2(const string& cmd, queue<string>&ops)
 				continue;
 			}
 			else if(ops.front()=="|"){
-				ops.pop();
-				tok = (char*) strdup((*itr).c_str());
-				tok2 = (char*) strdup((*(++itr)).c_str());
-				piping(tok,tok2);
+				queue<string> pipethis;
+				while((ops.size() > 0) && ops.front()=="|"){
+					ops.pop();
+					pipethis.push(*itr);
+					++itr;
+				}
+				pipethis.push(*itr);
+				piping(pipethis);
 				continue;
 			}
 			else break;
 	}
 }
 
+void piping(queue<string> vec)
+{
+	int fds[2];
+	int oldfdi;
+	int oldfdo;
+	//if(-1==pipe(fds)) perror("pipe()");
+	if(-1==(oldfdo=dup(1))) perror("dup");//Backup of OUT
+	if(-1==(oldfdi=dup(0))) perror("dup");//Backup of IN
+	bool first = true;
+	while(vec.size()>1){
+		if(-1==pipe(fds)) perror("pipe()");
+
+		//cout << vec.front() << endl;
+		string cmd(vec.front());
+		vec.pop();
+		cerr << "oldfdo: " << oldfdo << endl;
+		if(-1==(dup2(fds[1],1))) perror("dup2D()");//Out of first command goes to pipe
+		cerr << "oldfdi: " << oldfdi << endl;
+		if(!first){
+			if(-1==(dup2(fds[0],0))) perror("dup2C()");//In of second command comes from pipe
+		}
+		execute(cmd);
+		//Restore Stdout
+		if(-1==dup2(oldfdo,1)) perror("dup2B()");//Restore stdout
+		//if(-1==close(oldfdo)) perror("closeB1()");
+		if(-1==close(fds[1])) perror("closeB2()");
+		if(!first){//Restoring stdin
+			if(-1==dup2(oldfdi,0)) perror("dup2A()");//Restore stdin
+			//if(-1==close(oldfdi)) perror("closeA()");
+			if(-1==close(fds[0])) perror("closeA()");	
+		}
+		first = false;
+	}
+	if(-1==(dup2(fds[0],0))) perror("dup2E()");//In of second command comes from pipe
+	string cmd2(vec.front());
+	vec.pop();
+	//Restore Stdout
+	/*
+	if(-1==dup2(oldfdo,1)) perror("dup21()");//Restore stdout
+	if(-1==close(oldfdo)) perror("close1()");
+	if(-1==close(fds[1])) perror("close1()");	*/
+	execute(cmd2);
+	//Restoring stdin
+	if(-1==dup2(oldfdi,0)) perror("dup2F()");//Restore stdin
+	if(-1==close(oldfdi)) perror("close()");
+	if(-1==close(fds[0])) perror("close()");	
+
+}
+/*
 void piping(const char* in, const char* in1)
 {
 	string cmd1(in);
@@ -172,7 +225,7 @@ void piping(const char* in, const char* in1)
 	if(-1==close(oldfdi)) perror("close()");
 	if(-1==close(fds[0])) perror("close()");	
 }
-
+*/
 void parse(const string& cmd,queue<string>& ops)
 {
 	char* command =(char*)  cmd.c_str();
@@ -433,7 +486,7 @@ void inputRed(const char* in, const char* in1, const char* in2, bool isAppend)
 			if(-1==(fd2 = open(file2.c_str(), O_WRONLY|O_CREAT|O_TRUNC,0666)))
 			{
 				perror("open()");
-				exit(1);
+				//exit(1);
 			}
 		}
 		else{

@@ -1,4 +1,4 @@
-CFLAGS=-ansi -pedantic -Wall -Werror
+CFLAGS=-ansi -pedantic -Wall -Werror 
 
 all:
 	if [ ! -d bin ]; then mkdir bin; fi
