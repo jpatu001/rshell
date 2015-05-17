@@ -208,6 +208,7 @@ void piping(queue<string> cmd, bool isAppend, const char* file)
 		}
 		else{
 			if(-1==(pipe(fd2))) perror("pipe(fd2)");
+		}
 		if(flag){
 			string command2 = cmd.front();
 			cmd.pop();
