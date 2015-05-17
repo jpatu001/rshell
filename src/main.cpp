@@ -28,7 +28,7 @@ void findOPS(queue<string>& ops, const string& cmd);
 bool validIN(string& in);	
 void removeSpaces(string& str);
 void inputRed(const char* in, const char* in1, const char* in2, bool isAppend);
-void stringRed(const char* in, const char* in1);
+void stringRed(const char* in, const char* in1, const char* in2, bool isAppend);
 void outputRed(const char* in, const char* in2);
 void outputRedAppend(const char* in, const char* in2);
 //void piping(const char* in, const char* in1);
@@ -121,8 +121,22 @@ void parse2(const string& cmd, queue<string>&ops)
 				ops.pop();
 				tok = (char*) strdup((*itr).c_str());
 				tok2 = (char*) strdup((*(++itr)).c_str());
-				stringRed(tok,tok2);
-				continue;
+				if(ops.size()>0 && ops.front()==">"){
+					tok3 = (char*) strdup((*(++itr)).c_str());
+					ops.pop();
+					stringRed(tok,tok2,tok3,false);
+					continue;
+				}
+				else if(ops.size()>0 && ops.front()==">>"){
+					tok3 = (char*) strdup((*(++itr)).c_str());
+					ops.pop();
+					stringRed(tok,tok2,tok3,true);
+					continue;
+				}
+				else{
+					stringRed(tok, tok2, "nofilegiven",false);
+					continue;
+				}
 			}
 			else if(ops.front()==">"){
 				ops.pop();
@@ -224,31 +238,7 @@ void piping(queue<string> cmd)
 		if(-1==(close(fd2[0]))) perror("close(fd[0]");//CLOSE ONE END OF PIPE
 	}	
 }
-/*
-void piping(const char* in, const char* in1)
-{
-	string cmd1(in);
-	string cmd2(in1);
-	int fds[2];
-	int oldfdi;
-	int oldfdo;
-	if(-1==pipe(fds)) perror("pipe()");
-	if(-1==(oldfdo=dup(1))) perror("dup");//Backup of OUT
-	if(-1==(oldfdi=dup(0))) perror("dup");//Backup of IN
-	if(-1==(dup2(fds[1],1))) perror("dup2()");//Out of first command goes to pipe
-	execute(cmd1);
-	//Restore Stdout
-	if(-1==dup2(oldfdo,1)) perror("dup2()");//Restore stdout
-	if(-1==close(oldfdo)) perror("close()");
-	if(-1==close(fds[1])) perror("close()");	
-	if(-1==(dup2(fds[0],0))) perror("dup2()");//In of second command comes from pipe
-	execute(cmd2);
-	//Restoring stdin
-	if(-1==dup2(oldfdi,0)) perror("dup2()");//Restore stdin
-	if(-1==close(oldfdi)) perror("close()");
-	if(-1==close(fds[0])) perror("close()");	
-}
-*/
+
 void parse(const string& cmd,queue<string>& ops)
 {
 	char* command =(char*)  cmd.c_str();
@@ -575,15 +565,16 @@ void inputRed(const char* in, const char* in1, const char* in2, bool isAppend)
 		exit(1);
 	}
 }
-void stringRed(const char* in, const char* in1)
+void stringRed(const char* in, const char* in1, const char* in2, bool isAppend)
 {
 	string cmd(in);
 	string exec = "echo ";
 	string tmp(in1);
+	string file2(in2);
+	removeSpaces(file2);
 	tmp = tmp.substr(tmp.find('"')+1, tmp.size()-1);//Removes first "
-	if(tmp.at(tmp.size()-1)=='"') tmp.erase(tmp.size()-1);//Removes last "
+	int pos; if((pos = tmp.find("\""))!=-1) tmp.erase(pos);// Removes second "
 	exec = exec + tmp; //Concatonate echo before the string
-	
 	int fds[2];
 	int oldfdi;
 	int oldfdo;
@@ -598,7 +589,57 @@ void stringRed(const char* in, const char* in1)
 	//Right Side
 	if(-1==(oldfdi=dup(0))) perror("dup");//Backup of IN
 	if(-1==(dup2(fds[0],0))) perror("dup2()");//In of second command comes from pipe
+	
+	int fd2, oldfd2;
+	//Changes stdout if file was given
+	if(file2!="nofilegiven")
+	{
+		if(!isAppend){
+			if(-1==(fd2 = open(file2.c_str(), O_WRONLY|O_CREAT|O_TRUNC,0666)))
+			{
+				perror("open()");
+				//exit(1);
+			}
+		}
+		else{
+			if(-1==(fd2 = open(file2.c_str(), O_WRONLY|O_CREAT|O_APPEND,0666)))
+			{
+				perror("open()");
+				exit(1);
+			}
+		}
+		//Copies old file descriptor
+		if(-1==(oldfd2 = dup(1))){
+			perror("dup");
+			exit(1);
+		}
+		//Redirect output
+		if(-1==dup2(fd2,1)){
+			perror("dup2");
+			exit(1);
+		}
+		//Close other fd2
+		if(-1==close(fd2)){
+			perror("close()");
+			exit(1);
+		}
+	}
+
 	execute(cmd);
+
+	if(file2!="nofilegiven")
+	{
+		//Restore stdout
+		if(-1==dup2(oldfd2,1)){
+			perror("dup2()");
+			exit(1);
+		}
+		if(-1==close(oldfd2)){
+			perror("close()");
+			exit(1);
+		}
+	}
+
 	if(-1==dup2(oldfdi,0)) perror("dup2()");//Restore stdin
 	if(-1==close(oldfdi)) perror("close()");
 	if(-1==close(fds[0])) perror("close()");
