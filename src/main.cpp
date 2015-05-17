@@ -32,11 +32,12 @@ void stringRed(const char* in, const char* in1, const char* in2, bool isAppend);
 void outputRed(const char* in, const char* in2);
 void outputRedAppend(const char* in, const char* in2);
 //void piping(const char* in, const char* in1);
-void piping(queue<string> cmd);
+void piping(queue<string> cmd, bool isAppend, const char* file);
 bool cmdWorked = false;	//Global variable to track if command succeeded
 bool isPporRd = false; //Set to true if the connectors are pipes or IO redirection	
 bool isErrRed = false; //Set to true if redirection with specific # is done eg.	`command #> file`
 int fileDescriptor = 2; //Saves the filedescriptor given by the user, used with isErrRed
+bool isPipeAndOut = false;
 
 int main()
 {
@@ -160,15 +161,29 @@ void parse2(const string& cmd, queue<string>&ops)
 					++itr;
 				}
 				pipethis.push(*itr);
-				piping(pipethis);
-				continue;
+				if(ops.size()>0 && ops.front()==">"){
+					ops.pop();
+					++itr;
+					piping(pipethis, false, (*itr).c_str()); 
+				}
+				if(ops.size() > 0 && ops.front()==">>"){
+					ops.pop();
+					++itr;
+					piping(pipethis, true, (*itr).c_str()); 
+				}
+				else{
+					piping(pipethis, false, "nofilegiven");
+				}
+					continue;
 			}
 			else break;
 	}
 }
 
-void piping(queue<string> cmd)
+void piping(queue<string> cmd, bool isAppend, const char* file)
 {
+	string outfile(file);
+	removeSpaces(outfile);
 	int oldfdi, oldfdo;
 	if(-1==(oldfdi = dup(0))) perror("dup(oldfdout)");
 	if(-1==(oldfdo = dup(1))) perror("dup(oldfdin)");
@@ -228,7 +243,37 @@ void piping(queue<string> cmd)
 	}
 	if(-1==(dup2(oldfdo,1))) perror("dup2");//Restore stdout
 	if(-1==(close(oldfdo))) perror("close(oldfdo)");//Close oldfdo
+	int fd3, oldfd3;
+	//Changes stdout if file was given
+	if(outfile!="nofilegiven")
+	{
+		if(!isAppend){ 
+			if(-1==(fd3 = open(outfile.c_str(), O_WRONLY|O_CREAT|O_TRUNC,0666)))
+			{
+				perror("open()");
+			}
+		}
+		else{
+			if(-1==(fd3 = open(outfile.c_str(), O_WRONLY|O_CREAT|O_APPEND,0666)))
+			{
+				perror("open()");
+			}
+		}
+		//Copies old file descriptor
+		if(-1==(oldfd3 = dup(1))){
+			perror("dup()");
+		}
+		//Redirect output
+		if(-1==dup2(fd3,1)){
+			perror("dup2()");
+		}
+		//Close other fd3
+		if(-1==close(fd3)){
+			perror("close()");
+		}
+	}
 	execute(command);
+
 	if(-1==(dup2(oldfdi,0))) perror("dup(oldfdi)");//Restore stdin
 	if(-1==(close(oldfdi))) perror("close(olfdi)");	
 	if(flag){
@@ -237,6 +282,16 @@ void piping(queue<string> cmd)
 	else{
 		if(-1==(close(fd2[0]))) perror("close(fd[0]");//CLOSE ONE END OF PIPE
 	}	
+	if(outfile!="nofilegiven")
+	{
+		//Restore stdout
+		if(-1==dup2(oldfd3,1)){
+			perror("dup2()");
+		}
+		if(-1==close(oldfd3)){
+			perror("close()");
+		}
+	}
 }
 
 void parse(const string& cmd,queue<string>& ops)
