@@ -1,0 +1,387 @@
+Script started on Sun 17 May 2015 12:34:12 PM PDT
+~
+jpatu001@hammer $ Documents/CS100/rshell/bin/iv[K[Krshell 
+jpatu001@hammer$ ##HW 2##
+jpatu001@hammer$ 
+jpatu001@hammer$ ls -a 
+.	       Documents    .gnome2	       .local	    nonfile5		 .ssh
+..	       Downloads    .gnome2_private    .macromedia  .nv			 Templates
+.adobe	       .eggcups     .gnote	       .metacity    Pictures		 .Trash
+.bash_history  .emacs.d     .gnupg	       .mozilla     .pki		 Videos
+.bash_logout   .esd_auth    .gstreamer-0.10    Music	    .procmailrc		 .vim
+.bashrc        fd.cpp	    .gtk-bookmarks     .nautilus    .profile		 .viminfo
+.cache	       .fontconfig  .gtkrc-1.2-gnome2  newcopy	    Public		 .vimrc
+.config        .gconf	    .gvfs	       nonfile1     .pulse
+.dbus	       .gconfd	    .ICEauthority      nonfile2     .pulse-cookie
+Desktop        .gitlearn    .imsettings.log    nonfile3     .recently-used.xbel
+.dmrc	       .gnome	    .lesshst	       nonfile4     .redhat
+jpatu001@hammer$ 
+jpatu001@hammer$ 
+jpatu001@hammer$ #### OUTPUT REDIRECTION ####
+jpatu001@hammer$ echo string to nonf existent > file2 1
+jpatu001@hammer$ cat file1
+string to nonexistent
+jpatu001@hammer$ echo string chn anged > file1
+jpatu001@hammer$ cat file1
+string changed
+jpatu001@hammer$ echo string append to nonexisting > fil2 e3 2
+jpatu001@hammer$ cat file2
+string append to nonexisting
+jpatu001@hammer$ echo string append once mro        e more >> file2
+jpatu001@hammer$ cat file2
+string append to nonexisting
+string append one more
+jpatu001@hammer$ echo s string>file1 ##no space
+jpatu001@hammer$ cat file1
+string
+jpatu001@hammer$ echo append>>file2 ##no space
+jpatu001@hammer$ cat file2
+string append to nonexisting
+string append one more
+append
+jpatu001@hammer$ echo nonexistend t>file2 3 33 thi      #still creates file evne with no space in between
+jpatu001@hammer$ cat file2 3
+nonexistent
+jpatu001@hammer$ ###INPUTE  REDIRECTION WITH PIPE NOT SUPPORTED
+jpatu001@hammer$ 
+jpatu001@hammer$ 
+jpatu001@hammer$ ### INPUT REDIC               ### ^ OUTPUT      I MEAN   mea    meant OUTPUT REDICREC    RECTION with IP  PIPE no Suppo orted
+jpatu001@hammer$ 
+jpatu001@hammer$ 
+jpatu001@hammer$ #INPUT       #### INPUT REDIRECTION #####
+jpatu001@hammer$ cat < .vimrc
+set incsearch 
+set hlsearch
+set number
+set spell spelllang=en_us 
+syntax on
+set tabstop=4
+set ruler
+set undolevels=500
+set autochdir
+set mouse=a
+set mousehide
+set term=xterm-256color
+
+colorscheme murphy
+hi clear spellBad
+hi clear SpellLocal
+hi clear SpellCap
+hi clear SpellRare
+hi SpellBad cterm=underline
+hi SpellLocal cterm=none
+hi SpellCap cterm=underline
+hi SpellRare cterm=underline
+
+hi Comment cterm=none ctermfg=103
+hi Constant cterm=none ctermfg=36
+hi statement cterm=none ctermfg=green
+
+hi VarId cterm=none ctermfg=7
+hi Identifier cterm=none ctermfg=7
+hi Normal cterm=none ctermfg=7
+hi hsType cterm=none ctermfg=130
+hi hsDelimiter cterm=none ctermfg=green
+jpatu001@hammer$ grep s<.vimrc
+set incsearch 
+set hlsearch
+set number
+set spell spelllang=en_us 
+syntax on
+set tabstop=4
+set ruler
+set undolevels=500
+set autochdir
+set mouse=a
+set mousehide
+set term=xterm-256color
+colorscheme murphy
+hi clear spellBad
+hi Constant cterm=none ctermfg=36
+hi statement cterm=none ctermfg=green
+hi hsType cterm=none ctermfg=130
+hi hsDelimiter cterm=none ctermfg=green
+jpatu001@hammer$ 33  ###  < works with both spa        spaces and without as seen above to w  2 ex.
+jpatu001@hammer$ cat < mpm   nonexistentfile
+open(): No such file or directory
+jpatu001@hammer$ ## 1 `<file` r or `cat<` not supported
+jpatu001@hammer$ cat<.vimrc>file3 4
+jpatu001@hammer$ cat file4
+set incsearch 
+set hlsearch
+set number
+set spell spelllang=en_us 
+syntax on
+set tabstop=4
+set ruler
+set undolevels=500
+set autochdir
+set mouse=a
+set mousehide
+set term=xterm-256color
+
+colorscheme murphy
+hi clear spellBad
+hi clear SpellLocal
+hi clear SpellCap
+hi clear SpellRare
+hi SpellBad cterm=underline
+hi SpellLocal cterm=none
+hi SpellCap cterm=underline
+hi SpellRare cterm=underline
+
+hi Comment cterm=none ctermfg=103
+hi Constant cterm=none ctermfg=36
+hi statement cterm=none ctermfg=green
+
+hi VarId cterm=none ctermfg=7
+hi Identifier cterm=none ctermfg=7
+hi Normal cterm=none ctermfg=7
+hi hsType cterm=none ctermfg=130
+hi hsDelimiter cterm=none ctermfg=green
+jpatu001@hammer$ cat < f fil1 e2 >> file4 ##append to file3 4
+jpatu001@hammer$ cat file4
+set incsearch 
+set hlsearch
+set number
+set spell spelllang=en_us 
+syntax on
+set tabstop=4
+set ruler
+set undolevels=500
+set autochdir
+set mouse=a
+set mousehide
+set term=xterm-256color
+
+colorscheme murphy
+hi clear spellBad
+hi clear SpellLocal
+hi clear SpellCap
+hi clear SpellRare
+hi SpellBad cterm=underline
+hi SpellLocal cterm=none
+hi SpellCap cterm=underline
+hi SpellRare cterm=underline
+
+hi Comment cterm=none ctermfg=103
+hi Constant cterm=none ctermfg=36
+hi statement cterm=none ctermfg=green
+
+hi VarId cterm=none ctermfg=7
+hi Identifier cterm=none ctermfg=7
+hi Normal cterm=none ctermfg=7
+hi hsType cterm=none ctermfg=130
+hi hsDelimiter cterm=none ctermfg=green
+string append to nonexisting
+string append one more
+append
+jpatu001@hammer$ cat<file2>>file4 #works wihtout spaces as weel  ll
+jpatu001@hammer$ cat file4
+set incsearch 
+set hlsearch
+set number
+set spell spelllang=en_us 
+syntax on
+set tabstop=4
+set ruler
+set undolevels=500
+set autochdir
+set mouse=a
+set mousehide
+set term=xterm-256color
+
+colorscheme murphy
+hi clear spellBad
+hi clear SpellLocal
+hi clear SpellCap
+hi clear SpellRare
+hi SpellBad cterm=underline
+hi SpellLocal cterm=none
+hi SpellCap cterm=underline
+hi SpellRare cterm=underline
+
+hi Comment cterm=none ctermfg=103
+hi Constant cterm=none ctermfg=36
+hi statement cterm=none ctermfg=green
+
+hi VarId cterm=none ctermfg=7
+hi Identifier cterm=none ctermfg=7
+hi Normal cterm=none ctermfg=7
+hi hsType cterm=none ctermfg=130
+hi hsDelimiter cterm=none ctermfg=green
+string append to nonexisting
+string append one more
+append
+string append to nonexisting
+string append one more
+append
+jpatu001@hammer$ 
+jpatu001@hammer$ 
+jpatu001@hammer$ #### EXTRA CREDIT: String Redirection ####
+jpatu001@hammer$ cat <<< "output sthi    thist  string"
+output this string
+jpatu001@hammer$ cat<<<"NOW   output this too" #no spaces in betweee n
+output this too
+jpatu001@hammer$ cat <<<           "         out this            ' "
+out this
+jpatu001@hammer$ cat <<< "put all these in file" > file4 5^[[D^[[D^[[D                         new file  " > file5
+jpatu001@hammer$ cat file5
+put all these in new file
+jpatu001@hammer$ cat <  <<   <<< "   "add these" >>>fi   file5
+jpatu001@hammer$ cat file5
+put all these in new file
+add these
+jpatu001@hammer$ cat<<<"nospace"  >file5
+jpatu001@hammer$ cat file5
+nospace
+jpatu001@hammer$ cat<<<"nospaceappend">>> file5
+jpatu001@hammer$ cat file5
+nospace
+nospaceappend
+jpatu001@hammer$ grep histroy       hello < "this has helo lo     so output"
+open(): No such file or directory
+jpatu001@hammer$ grep ge  hello <<< "This has hello so o          output "  : "
+This has hello output
+jpatu001@hammer$ grep hello <<< "this has goodbye, so no output"
+jpatu001@hammer$ #n ntoe    Note: `<<<` and       "string"1 ` and `cat<<<` doesnt work
+jpatu001@hammer$ 
+jpatu001@hammer$ #### ex  EXTRA CREDIT: Fild e Desct riptor Change ####
+jpatu001@hammer$ echo int main() > fd.cpp
+jpatu001@hammer$ cat fd.cpp
+int main()
+jpatu001@hammer$ g++ fd.cpp 3 ### here error is ou  on stdout
+fd.cpp:1: error: expected initializer at end of input
+jpatu001@hammer$ g++ fd.cpp 2> fd
+jpatu001@hammer$ cat fd.c   #now stderr was redirecto ed to a file instead of stderr on screen
+fd.cpp:1: error: expected initializer at end of input
+jpatu001@hammer$ c g--  ++ fd.cpp2   2             g++ fd.cpp2>> fd
+jpatu001@hammer$ cat fd
+fd.cpp:1: error: expected initializer at end of input
+fd.cpp:1: error: expected initializer at end of input
+jpatu001@hammer$ 
+jpatu001@hammer$ 
+jpatu001@hammer$ 
+jpatu001@hammer$ #### PIPING ####
+jpatu001@hammer$ ls | grep d # single pipie  e
+Downloads
+fd
+fd.cpp
+Videos
+jpatu001@hammer$ ls|grep d|  ##single pipe, with no space
+Downloads
+fd
+fd.cpp
+Videos
+jpatu001@hammer$ #multiple pipes
+jpatu001@hammer$ ls -a | grep e   a   | grepa s   s    s | grep n | grep t
+.nautilus
+jpatu001@hammer$ #multiple pipes with no space
+jpatu001@hammer$ ls -a |  |grep a|  grep s |  | g  grep n  |  grep t
+.nautilus
+jpatu001@hammer$ ###OUT     Output Redirection works with a minor bug, read README.md d for more details
+jpatu001@hammer$ # ls -a | grep a|  | grep s >> |    | grep n | grep t > file6
+.nautilus
+jpatu001@hammer$ #as you see it gets outputs ed, but file 6 was created and the outputs  was saved there as wee ll
+jpatu001@hammer$ cat file6
+.nautilus
+jpatu001@hammer$ #see, now if I do append, this doesnt a happend
+jpatu001@hammer$ ls -a | grep a | grep s | grep n | grep t >> file6
+jpatu001@hammer$ cat file6
+.nautilus
+.nautilus
+jpatu001@hammer$ #see append,  works just fine, so I documented this on rh  the README.md
+jpatu001@hammer$ #multiple comm   pip    pipes
+jpatu001@hammer$ ls-a   -al|grep s | grep a | grep1  1 |  grep x| grep v| grep 7|  grep1  15 ##    
+drwx------    2 jpatu001 csmajs   4096 May 15 22:17 .vim
+jpatu001@hammer$ ls -al|grep s |    |grep a |    |grep 1 |  |  ge rep x |  |  grev p v |    |grep 7 > file  7
+drwx------    2 jpatu001 csmajs   4096 Jan  7  2014 .gnome2_private
+drwx------    3 jpatu001 csmajs   4096 Jan  7  2014 .nv
+drwx------    2 jpatu001 csmajs   4096 May 15 22:17 .vim
+jpatu001@hammer$ cat file 7  7
+drwx------    2 jpatu001 csmajs   4096 Jan  7  2014 .gnome2_private
+drwx------    3 jpatu001 csmajs   4096 Jan  7  2014 .nv
+drwx------    2 jpatu001 csmajs   4096 May 15 22:17 .vim
+jpatu001@hammer$ ls -al  |grep a|greps  |grep u >> file7 ##append
+execvp: No such file or directory
+jpatu001@hammer$ ls -al |  |grep a |    |grep s|greup  p u >>   >>file7
+jpatu001@hammer$ cat file7
+drwx------    2 jpatu001 csmajs   4096 Jan  7  2014 .gnome2_private
+drwx------    3 jpatu001 csmajs   4096 Jan  7  2014 .nv
+drwx------    2 jpatu001 csmajs   4096 May 15 22:17 .vim
+drwx------   39 jpatu001 csmajs   8192 May 17 12:50 .
+drwx------    3 jpatu001 csmajs   4096 Jan  7  2014 .adobe
+-rw-------    1 jpatu001 csmajs   1219 May 17 12:27 .bash_history
+-rw-------    1 jpatu001 csmajs     24 Sep 19  2008 .bash_logout
+-rw-------    1 jpatu001 csmajs   1270 Sep 19  2008 .bashrc
+drwx------    3 jpatu001 csmajs   4096 Jan  7  2014 .cache
+drwx------    6 jpatu001 csmajs   4096 Feb 28  2014 .config
+drwx------    3 jpatu001 csmajs   4096 Feb 28  2014 .dbus
+drwx------    4 jpatu001 csmajs   4096 Apr 27 16:46 Desktop
+-rwx------    1 jpatu001 csmajs     26 Jan  7  2014 .dmrc
+drwx------    7 jpatu001 csmajs   4096 May 13 01:34 Documents
+drwx------    2 jpatu001 csmajs   4096 Dec  3 08:43 Downloads
+drwx------    2 jpatu001 csmajs   4096 Jan  7  2014 .eggcups
+drwx------    3 jpatu001 csmajs   4096 Apr  6 14:43 .emacs.d
+-rwx------    1 jpatu001 csmajs     16 Jan 21  2014 .esd_auth
+-rw-------    1 jpatu001 csmajs    108 May 17 12:38 fd
+-rw-------    1 jpatu001 csmajs     11 May 17 12:37 fd.cpp
+-rw-------    1 jpatu001 csmajs      7 May 17 12:29 file1
+-rw-------    1 jpatu001 csmajs     59 May 17 12:29 file2
+-rw-------    1 jpatu001 csmajs     12 May 17 12:29 file3
+-rw-------    1 jpatu001 csmajs    783 May 17 12:33 file4
+-rw-------    1 jpatu001 csmajs     22 May 17 12:35 file5
+-rw-------    1 jpatu001 csmajs     20 May 17 12:42 file6
+-rw-------    1 jpatu001 csmajs    181 May 17 12:50 file7
+drwx------    2 jpatu001 csmajs   4096 Apr  2  2014 .fontconfig
+drwx------    4 jpatu001 csmajs   4096 Jun  6  2014 .gconf
+drwx------    2 jpatu001 csmajs   4096 Jun  6  2014 .gconfd
+drwx------    3 jpatu001 csmajs   4096 Apr 11 23:41 .gitlearn
+drwx------    3 jpatu001 csmajs   4096 Jan  7  2014 .gnome
+drwx------    8 jpatu001 csmajs  12288 Jun  6  2014 .gnome2
+drwx------    2 jpatu001 csmajs   4096 Jan  7  2014 .gnome2_private
+drwx------    3 jpatu001 csmajs   4096 Feb 28  2014 .gnote
+drwx------    2 jpatu001 csmajs   4096 May 17 10:40 .gnupg
+drwx------    2 jpatu001 csmajs   4096 Mar  4  2014 .gstreamer-0.10
+-rwx------    1 jpatu001 csmajs    187 Feb 28  2014 .gtk-bookmarks
+-rwx------    1 jpatu001 csmajs     97 Jan  7  2014 .gtkrc-1.2-gnome2
+drwx------    2 jpatu001 csmajs   4096 Feb 28  2014 .gvfs
+-rwx------    1 jpatu001 csmajs    310 Feb 28  2014 .ICEauthority
+-rwx------    1 jpatu001 csmajs    655 Feb 28  2014 .imsettings.log
+-rw-------    1 jpatu001 csmajs     35 Mar 30 17:05 .lesshst
+drwx------    3 jpatu001 csmajs   4096 Feb 28  2014 .local
+drwx------    3 jpatu001 csmajs   4096 Jan  7  2014 .macromedia
+drwx------    3 jpatu001 csmajs   4096 Jan  7  2014 .metacity
+drwx------    4 jpatu001 csmajs   4096 Jan  7  2014 .mozilla
+drwx------    3 jpatu001 csmajs   4096 Oct  8  2014 Music
+drwx------    3 jpatu001 csmajs   4096 Jun  6  2014 .nautilus
+-rw-------    1 jpatu001 csmajs    116 May 17 12:14 newcopy
+-rw-------    1 jpatu001 csmajs     26 May 17 12:07 nonfile1
+-rw-------    1 jpatu001 csmajs     60 May 17 12:08 nonfile2
+-rw-------    1 jpatu001 csmajs     58 May 17 12:13 nonfile3
+-rw-------    1 jpatu001 csmajs     59 May 17 12:15 nonfile4
+-rw-------    1 jpatu001 csmajs    108 May 17 12:21 nonfile5
+drwx------    3 jpatu001 csmajs   4096 Jan  7  2014 .nv
+drwx------    2 jpatu001 csmajs   4096 Feb 28  2014 Pictures
+drwx------    3 jpatu001 csmajs   4096 Apr  6 15:28 .pki
+-rwx------    1 jpatu001 csmajs     88 Sep 22  2013 .procmailrc
+-rw-------    1 jpatu001 csmajs    965 Sep 19  2008 .profile
+drwx------    2 jpatu001 csmajs   4096 Feb 28  2014 Public
+drwx------    2 jpatu001 csmajs   4096 Feb 28  2014 .pulse
+-rwx------    1 jpatu001 csmajs    256 Feb 28  2014 .pulse-cookie
+-rwx------    1 jpatu001 csmajs    709 Jun  6  2014 .recently-used.xbel
+drwx------    3 jpatu001 csmajs   4096 Jan  7  2014 .redhat
+drwx------    2 jpatu001 csmajs   4096 May 11 15:07 .ssh
+drwx------    2 jpatu001 csmajs   4096 Feb 28  2014 Templates
+drwx------    2 jpatu001 csmajs   4096 Jun  6  2014 .Trash
+drwx------    2 jpatu001 csmajs   4096 Feb 28  2014 Videos
+drwx------    2 jpatu001 csmajs   4096 May 15 22:17 .vim
+-rw-------    1 jpatu001 csmajs  10096 May 17 11:54 .viminfo
+-rw-------    1 jpatu001 csmajs    665 May 11 14:29 .vimrc
+jpatu001@hammer$ ###DONE  ###
+jpatu001@hammer$ exit
+~
+jpatu001@hammer $ exit
+exit
+
+Script done on Sun 17 May 2015 12:57:35 PM PDT

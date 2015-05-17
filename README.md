@@ -77,6 +77,17 @@ The code above excecutes `ls` since the first one failed(invalid) command, but i
 ```
 ###IO Redirection
 * Reads '<<' as '<' 
+* Input redirection and piping not supported
+* Piping and output redirection works, but stdout works and Output Redirection at the same time
+```
+ls -a ~ | grep e | grep s | grep t > file
+#this outputs to standard out all the file from ~ that has been filtered to e, s, and t, but it also creates the file name 'file' if it doesnt exist and overwrites if it does. And all the files brought to standard out gets save to the file.
+
+ls -a ~ | grpe e | grep s | grep t >> file
+#this works as it should(its in the same function with the one above this^), but this doesnt output to standard out, it appends to the end of the given file or it creates them. 
+```
+* `< file` or `cat < ` not supported(can't accept empty side). Same for <<< or > or >>.
+
 
 ##Bugs/ Limitations for ls
 * Sorting is not the same as from bash

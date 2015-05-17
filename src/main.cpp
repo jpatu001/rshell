@@ -203,8 +203,11 @@ void piping(queue<string> cmd, bool isAppend, const char* file)
 	bool flag = true;
 	while(cmd.size()>1)
 	{
-		if(!flag) pipe(fd);
-		else pipe(fd2);
+		if(!flag){
+			if(-1==(pipe(fd))) perror("pipe(fd)");
+		}
+		else{
+			if(-1==(pipe(fd2))) perror("pipe(fd2)");
 		if(flag){
 			string command2 = cmd.front();
 			cmd.pop();
@@ -231,6 +234,10 @@ void piping(queue<string> cmd, bool isAppend, const char* file)
 			flag = true;
 		}
 	}
+	
+	if(-1==(dup2(oldfdo,1))) perror("dup2");//Restore stdout
+	if(-1==(close(oldfdo))) perror("close(oldfdo)");//Close oldfdo
+
 	//Last part, restore all out, take input from pipe, and output to stdout
 	command = cmd.front();
 	cmd.pop();
@@ -241,20 +248,18 @@ void piping(queue<string> cmd, bool isAppend, const char* file)
 	else{
 		if(-1==(dup(fd[0]))) perror("dup(fd[0])"); //STDIN -> OUT-PIPE
 	}
-	if(-1==(dup2(oldfdo,1))) perror("dup2");//Restore stdout
-	if(-1==(close(oldfdo))) perror("close(oldfdo)");//Close oldfdo
 	int fd3, oldfd3;
 	//Changes stdout if file was given
 	if(outfile!="nofilegiven")
 	{
-		if(!isAppend){ 
-			if(-1==(fd3 = open(outfile.c_str(), O_WRONLY|O_CREAT|O_TRUNC,0666)))
+		if(isAppend){ 
+			if(-1==(fd3 = open(outfile.c_str(), O_WRONLY|O_CREAT|O_APPEND,0666)))
 			{
 				perror("open()");
 			}
 		}
 		else{
-			if(-1==(fd3 = open(outfile.c_str(), O_WRONLY|O_CREAT|O_APPEND,0666)))
+			if(-1==(fd3 = open(outfile.c_str(), O_WRONLY|O_CREAT|O_TRUNC,0666)))
 			{
 				perror("open()");
 			}
@@ -536,7 +541,7 @@ void inputRed(const char* in, const char* in1, const char* in2, bool isAppend)
 		cerr << "syntax error near unexpected token 'newline'" << endl;
 		return;
 	}
-	if(cmd.size()!=0) removeSpaces(cmd);
+	//if(cmd.size()!=0) removeSpaces(cmd);
 	if(file.size()!=0) removeSpaces(file);
 	if(file2.size()!=0) removeSpaces(file2);
 	//Opens file for input
