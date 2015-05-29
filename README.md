@@ -5,7 +5,7 @@ Added ls. (Under Tag: hw1). It works like the bash ls. It only support -l -a -R 
 
 Added Pipe and IO Redirection(Under Tag: hw2). Supports `<` `>` `>>` `2>` or `2>>` for redirection.String Redirection like `cat <<< "cat"` works. 
 
-Added `cd` command (Under Tag: hw3). It now supports `cd -` which changes the current directory to previous directory. `cd` takes you to home directory. `cd <path>` takes you to whatever path is specified. `^C`is now supported. This doesnt quit the rshell. So running rshell within rshell, one must use `exit` to exit of the second rshell. 
+Added `cd` command (Under Tag: hw3). It now supports `cd -` which changes the current directory to previous directory. `cd` takes you to home directory. `cd <path>` takes you to whatever path is specified. `^C`is now supported. This doesnt quit the rshell. So running rshell within rshell, one must use `exit` to exit of the second rshell. Also, cd has to be the first word in the command in order for it to work. ` cd` wont work, there should be any empty spaces in front. 
 
 #Installation Guide
 ```
