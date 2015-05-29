@@ -86,7 +86,6 @@ int main()
 		isPporRd = false;
 		isErrRed = false;
 		fileDescriptor = 2;
-		
 		char currPath[128];
 		if((getcwd(currPath, 128)==NULL)) perror("getcwd()");	
 		string path(currPath);
@@ -928,10 +927,7 @@ void changeDir(const string& cmd){
 		}
 	}
 	else{
-		string home(currPath);
-		int pos = home.find(name2);
-		pos = pos + name2.size();
-		home = home.substr(0,pos);
+		string home = getenv("HOME");
 		if(-1==(setenv("OLDPWD", currPath, 1))) perror("setenv()");
 		if(-1==(setenv("PWD", home.c_str(), 1))) perror("setenv()");
 		if(-1==(chdir(home.c_str()))) perror("chdir()");
