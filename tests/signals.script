@@ -1,0 +1,117 @@
+Script started on Thu 28 May 2015 09:57:10 PM PDT
+~
+jpatu001@hammer $ cd Documents/CS100/rshell/
+~/Documents/CS100/rshell
+jpatu001@hammer $ make
+if [ ! -d bin ]; then mkdir bin; fi
+g++ -ansi -pedantic -Wall -Werror  src/main.cpp -o bin/rshell
+g++ -ansi -pedantic -Wall -Werror  src/cp.cpp -o bin/cp
+g++ -ansi -pedantic -Wall -Werror  src/ls.cpp -o bin/ls
+g++ -ansi -pedantic -Wall -Werror  src/mv.cpp -o bin/mv
+g++ -ansi -pedantic -Wall -Werror  src/rm.cpp -o bin/rm
+~/Documents/CS100/rshell
+jpatu001@hammer $ ps
+  PID TTY          TIME CMD
+38055 pts/14   00:00:00 bash
+38100 pts/14   00:00:00 ps
+~/Documents/CS100/rshell
+jpatu001@hammer $ ###STARTING RSHELL###
+~/Documents/CS100/rshell
+jpatu001@hammer $ bin/rshell 
+jpatu001@hammer:~/Documents/CS100/rshell $ #Here' , the current directory is printed
+jpatu001@hammer:~/Documents/CS100/rshell $ #cd .. to go back
+jpatu001@hammer:~/Documents/CS100/rshell $ cd.  ..
+jpatu001@hammer:~/Documents/CS100 $ #the directory got update and it went back
+jpatu001@hammer:~/Documents/CS100 $ cd ..
+jpatu001@hammer:~/Documents $ cd ..
+jpatu001@hammer:~ $ cd .    ###   T testing  c  cd<  <path>##
+jpatu001@hammer:~ $ cd Doc	uments/cs  Cs1  S100
+jpatu001@hammer:~/Documents/CS100 $ cd   rshell/bin
+jpatu001@hammer:~/Documents/CS100/rshell/bin $ cd ..
+jpatu001@hammer:~/Documents/CS100/rshell $ cd ..
+jpatu001@hammer:~/Documents/CS100 $ cd  rshell
+jpatu001@hammer:~/Documents/CS100/rshell $ ### te    testing cd, should go to home##
+jpatu001@hammer:~/Documents/CS100/rshell $ cd
+jpatu001@hammer:~ $ ls
+Desktop  Documents  Downloads  Music  Pictures	Public	Templates  Videos
+jpatu001@hammer:~ $ cd Doce uemnts     ments/rsh   CS!))   100/rshel;l   ll/src
+jpatu001@hammer:~/Documents/CS100/rshell/src $ ls
+checksyscalls.sh  cp.cpp  ls.cpp  main.cpp  mv.cpp  rm.cpp  Timer.h
+jpatu001@hammer:~/Documents/CS100/rshell/src $ cd
+jpatu001@hammer:~ $ ## cd gors    es to g home whereev  ver i am at. ##
+jpatu001@hammer:~ $ cd
+jpatu001@hammer:~ $ ## workd s r when ran in home too
+jpatu001@hammer:~ $ cd Doc	uments/CS100/rshell
+jpatu001@hammer:~/Documents/CS100/rshell $ ##testing cd -, should ho b    go back to rpev    prev de it r##
+jpatu001@hammer:~/Documents/CS100/rshell $ ##here's prev          t  this will be the rp  previous directory
+jpatu001@hammer:~/Documents/CS100/rshell $ cd
+jpatu001@hammer:~ $ ##this will be the new.
+jpatu001@hammer:~ $ no  #now tet sting cd -
+jpatu001@hammer:~ $ cd -
+jpatu001@hammer:~/Documents/CS100/rshell $ cd - ##this was the previous, now going back to prev again
+jpatu001@hammer:~ $ cd -
+jpatu001@hammer:~/Documents/CS100/rshell $ cd -
+jpatu001@hammer:~ $ cd -
+jpatu001@hammer:~/Documents/CS100/rshell $ cd ..
+jpatu001@hammer:~/Documents/CS100 $ cd -
+jpatu001@hammer:~/Documents/CS100/rshell $ cd -
+jpatu001@hammer:~/Documents/CS100 $ c d-
+execvp: No such file or directory
+jpatu001@hammer:~/Documents/CS100 $ cd -
+jpatu001@hammer:~/Documents/CS100/rshell $ ### SIGINT TEST ###
+jpatu001@hammer:~/Documents/CS100/rshell $ ## nothing running besides rhsell
+jpatu001@hammer:~/Documents/CS100/rshell $ ps
+  PID TTY          TIME CMD
+38055 pts/14   00:00:00 bash
+38110 pts/14   00:00:00 rshell
+38438 pts/14   00:00:00 ps
+jpatu001@hammer:~/Documents/CS100/rshell $ ^C
+jpatu001@hammer:~/Documents/CS100/rshell $ ^C
+jpatu001@hammer:~/Documents/CS100/rshell $ ^C
+jpatu001@hammer:~/Documents/CS100/rshell $ ^C
+jpatu001@hammer:~/Documents/CS100/rshell $ ^C
+jpatu001@hammer:~/Documents/CS100/rshell $ ^C
+jpatu001@hammer:~/Documents/CS100/rshell $ ^C
+jpatu001@hammer:~/Documents/CS100/rshell $ ^C
+jpatu001@hammer:~/Documents/CS100/rshell $ ps
+  PID TTY          TIME CMD
+38055 pts/14   00:00:00 bash
+38110 pts/14   00:00:00 rshell
+38443 pts/14   00:00:00 ps
+jpatu001@hammer:~/Documents/CS100/rshell $ #it didnt quit as it sh     the specs say
+jpatu001@hammer:~/Documents/CS100/rshell $ #lets run cat
+jpatu001@hammer:~/Documents/CS100/rshell $ ps
+  PID TTY          TIME CMD
+38055 pts/14   00:00:00 bash
+38110 pts/14   00:00:00 rshell
+38456 pts/14   00:00:00 ps
+jpatu001@hammer:~/Documents/CS100/rshell $ cat
+adnaiwda        here its in a  n    loop
+here its in a loop
+when I do ctrl c, it should exit cat
+when I do ctrl c, it should exit cat
+^C
+jpatu001@hammer:~/Documents/CS100/rshell $ ps
+  PID TTY          TIME CMD
+38055 pts/14   00:00:00 bash
+38110 pts/14   00:00:00 rshell
+38475 pts/14   00:00:00 ps
+jpatu001@hammer:~/Documents/CS100/rshell $ #see cat is no longer present
+jpatu001@hammer:~/Documents/CS100/rshell $ #ctrl c agaain    ain an  d it wont wu  quit
+jpatu001@hammer:~/Documents/CS100/rshell $ ^C
+jpatu001@hammer:~/Documents/CS100/rshell $ ^C
+jpatu001@hammer:~/Documents/CS100/rshell $ ^C
+jpatu001@hammer:~/Documents/CS100/rshell $ ^C
+jpatu001@hammer:~/Documents/CS100/rshell $ ^C
+jpatu001@hammer:~/Documents/CS100/rshell $ ^C
+jpatu001@hammer:~/Documents/CS100/rshell $ ^C
+jpatu001@hammer:~/Documents/CS100/rshell $ ^C
+jpatu001@hammer:~/Documents/CS100/rshell $ ^C
+jpatu001@hammer:~/Documents/CS100/rshell $ ^C
+jpatu001@hammer:~/Documents/CS100/rshell $ ### Scr   En ND ###
+jpatu001@hammer:~/Documents/CS100/rshell $ exit
+~/Documents/CS100/rshell
+jpatu001@hammer $ exit
+exit
+
+Script done on Thu 28 May 2015 10:03:07 PM PDT
