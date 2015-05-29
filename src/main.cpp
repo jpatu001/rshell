@@ -20,6 +20,7 @@
 using namespace std;
 using namespace boost;
 
+void changeDir(const string& cmd);
 void execute(const string& cmd);
 void exitShell();
 void parse(const string&  cmd, queue<string>& ops);//For regular connectors
@@ -31,25 +32,33 @@ void inputRed(const char* in, const char* in1, const char* in2, bool isAppend);
 void stringRed(const char* in, const char* in1, const char* in2, bool isAppend);
 void outputRed(const char* in, const char* in2);
 void outputRedAppend(const char* in, const char* in2);
-//void piping(const char* in, const char* in1);
 void piping(queue<string> cmd, bool isAppend, const char* file);
 bool cmdWorked = false;	//Global variable to track if command succeeded
 bool isPporRd = false; //Set to true if the connectors are pipes or IO redirection	
 bool isErrRed = false; //Set to true if redirection with specific # is done eg.	`command #> file`
 int fileDescriptor = 2; //Saves the filedescriptor given by the user, used with isErrRed
 bool isPipeAndOut = false;
+string name2;
+
+void handler(int sig, siginfo_t * siginfo, void *context){
+	if(sig==SIGINT){
+		int pid;
+		if(-1==(pid = getpid())) perror("getpid()");
+		if(pid==0)
+		{
+			exit(0);
+		}
+	}
+	cout << endl;
+}
 
 int main()
 {
-
  	string name;
-	//Gets user login name
-	name = getlogin();
+	name = getlogin();//Gets user login name
 	if(name=="\0") perror("getlogin()");
-	//Retrieves hostname
 	char host[64];
-	if ((gethostname(host, 64))==-1) perror("gethostname()");
-
+	if ((gethostname(host, 64))==-1) perror("gethostname()");//Retrieves hostname
 	//Removes cs.ucr.edu
 	int i = 0;
 	bool isFixed = false;
@@ -61,28 +70,49 @@ int main()
 		}
 		++i;
 	}
+	name2 = name;
 	name = name + '@' + host;
-	
 	string userIN;
+
+	struct sigaction act;
+	memset(&act, '\0', sizeof(act));
+	act.sa_sigaction = &handler;
+	act.sa_flags = SA_SIGINFO;
+	if(-1==(sigaction(SIGINT, &act, NULL))) perror("sigaction");
+	if(-1==(sigaction(SIGTSTP, &act, NULL))) perror("sigaction");
+	
 	while(1)
 	{
 		isPporRd = false;
 		isErrRed = false;
 		fileDescriptor = 2;
-		cout << name << "$ ";
+		
+		char currPath[128];
+		if((getcwd(currPath, 128)==NULL)) perror("getcwd()");	
+		string path(currPath);
+		if(path.find(name2)!=string::npos){
+			int pos = path.find(name2);
+			pos = pos + name2.size();
+			path = path.substr(pos, path.size()-1);
+			path = '~' + path;
+		}
+		cout << name << ":" << path << " $ ";
+		cin.clear();
         getline(cin, userIN);
-		//Exit right away if exit was typed
-		if(userIN=="exit" || userIN=="Exit") exitShell();
-		//Removes everything after '#' (comment)
-		if(userIN.find('#')!=string::npos) userIN = userIN.substr(0,userIN.find('#'));
-		//Do nothing if empty command
-		if(!validIN(userIN)){}//Gets rid of all whitespaces entry 
+		if(userIN=="exit" || userIN=="Exit") exitShell();//Exit right away if exit was typed
+		if(userIN.find('#')!=string::npos) userIN = userIN.substr(0,userIN.find('#'));//Removes comment
+		if(!validIN(userIN)){}//Gets rid of all whitespaces entry and does nothing if empty
 		else{
-			queue<string> ops;
-			findOPS(ops, userIN);
-			if(isPporRd) parse2(userIN, ops);
-			else parse(userIN, ops);
-		}	
+			if(userIN.find("cd")!=string::npos && userIN.find("cd") == 0){
+				changeDir(userIN);
+			}
+			else{
+				queue<string> ops;
+				findOPS(ops, userIN);
+				if(isPporRd) parse2(userIN, ops);
+				else parse(userIN, ops);
+			}
+		}
 	}
 	return 0;
 }
@@ -436,7 +466,12 @@ void execute(const string& cmd)
 	}
 	else{//Parent
 		int parent = 0;
-		if(wait(&parent)==-1){//Wait Error
+		int wpid = 0;
+		do{
+			wpid = wait(&parent);
+		}while(wpid==-1 && errno == EINTR);
+		if(wpid==1)
+		{//Wait Error
 			perror("wait");
 			cmdWorked = false;
 			free(arg);//Free arg before exitting
@@ -857,5 +892,48 @@ void outputRedAppend(const char* in, const char* in2)
 			perror("close()");
 			exit(1);
 		}
+	}
+}
+
+void changeDir(const string& cmd){
+	typedef tokenizer< char_separator<char> > tokenizer;
+	char_separator<char> sep(" ");//Sets char as space
+	tokenizer tokens(cmd, sep);//Sets separator as space " "
+	vector<string> copy;//Copy of the command line
+	
+	char* currPath = getenv("PWD");//Gets current path
+	if(currPath==NULL){
+		cout << "getenv():error" << endl;
+		return;
+	}
+	for(tokenizer::iterator itr = tokens.begin(); itr != tokens.end(); itr++)
+	{
+		copy.push_back(*itr);
+	}
+
+	if(copy.size()>1){
+		if(copy.at(1)=="-"){
+			char* newPath = getenv("OLDPWD");
+			if(-1==(setenv("OLDPWD", currPath, 1))) perror("setenv()");
+			if(-1==(setenv("PWD", newPath, 1))) perror("setenv()");
+			if(-1==(chdir(newPath))) perror("chdir()");
+		}
+		else{
+			char* newPath = (char*)(copy.at(1).c_str());
+			if(-1==(setenv("OLDPWD", currPath, 1))) perror("setenv()");
+			if(-1==(chdir(newPath))) perror("chdir()");
+			char path[128];
+			if((getcwd(path, 128)==NULL)) perror("getcwd()");	
+			if(-1==(setenv("PWD", path, 1))) perror("setenv()");
+		}
+	}
+	else{
+		string home(currPath);
+		int pos = home.find(name2);
+		pos = pos + name2.size();
+		home = home.substr(0,pos);
+		if(-1==(setenv("OLDPWD", currPath, 1))) perror("setenv()");
+		if(-1==(setenv("PWD", home.c_str(), 1))) perror("setenv()");
+		if(-1==(chdir(home.c_str()))) perror("chdir()");
 	}
 }
